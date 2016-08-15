@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_tab_layout);
-
         initView();
     }
 
@@ -69,6 +68,14 @@ public class MainActivity extends AppCompatActivity {
         textView.setText(mTextviewArray[index]);
 
         return view;
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        FragmentPage1 fragmentPage1 = (FragmentPage1) getSupportFragmentManager().findFragmentByTag(mTextviewArray[0]);
+        fragmentPage1.onBackPressed();
     }
 }
 
