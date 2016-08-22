@@ -1,13 +1,22 @@
-package com.hl.netplayhere;
+package com.hl.netplayhere.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTabHost;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TabHost;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.hl.netplayhere.FragmentPage1;
+import com.hl.netplayhere.FragmentPage2;
+import com.hl.netplayhere.FragmentPage3;
+import com.hl.netplayhere.R;
+import com.hl.netplayhere.util.Constant;
 
 public class MainActivity extends AppCompatActivity {
     //定义FragmentTabHost对象
@@ -17,13 +26,13 @@ public class MainActivity extends AppCompatActivity {
     private LayoutInflater layoutInflater;
 
     //定义数组来存放Fragment界面
-    private Class fragmentArray[] = {FragmentPage1.class, FragmentPage2.class};
+    private Class fragmentArray[] = {FragmentPage1.class, FragmentPage2.class, FragmentPage3.class};
 
     //定义数组来存放按钮图片
-    private int mImageViewArray[] = {R.drawable.tab_home_btn, R.drawable.tab_message_btn};
+    private int mImageViewArray[] = {R.drawable.tab_home_btn, R.drawable.tab_home_btn, R.drawable.tab_message_btn};
 
     //Tab选项卡的文字
-    private String mTextviewArray[] = {"拍照弹幕", "积分商城"};
+    private String mTextviewArray[] = {"景点导航","拍照弹幕", "积分商城"};
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +62,16 @@ public class MainActivity extends AppCompatActivity {
             //设置Tab按钮的背景
             mTabHost.getTabWidget().getChildAt(i).setBackgroundResource(R.drawable.selector_tab_background);
         }
+        mTabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
+            @Override
+            public void onTabChanged(String tabId) {
+                Constant.isMapNeedReload = true;
+                if(!tabId.equals(mTextviewArray[1])){
+                    FragmentPage2 fragmentPage1 = (FragmentPage2) getSupportFragmentManager().findFragmentByTag(mTextviewArray[1]);
+                    fragmentPage1.onBackPressed();
+                }
+            }
+        });
     }
 
     /**
@@ -68,14 +87,6 @@ public class MainActivity extends AppCompatActivity {
         textView.setText(mTextviewArray[index]);
 
         return view;
-    }
-
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        FragmentPage1 fragmentPage1 = (FragmentPage1) getSupportFragmentManager().findFragmentByTag(mTextviewArray[0]);
-        fragmentPage1.onBackPressed();
     }
 }
 

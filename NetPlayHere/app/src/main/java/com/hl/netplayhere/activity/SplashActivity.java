@@ -1,10 +1,12 @@
-package com.hl.netplayhere;
+package com.hl.netplayhere.activity;
 
 import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
+
+import com.hl.netplayhere.R;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.

@@ -2,6 +2,8 @@ package com.hl.netplayhere;
 
 import android.app.Application;
 
+import com.baidu.mapapi.SDKInitializer;
+
 import cn.bmob.v3.Bmob;
 
 /**
@@ -15,5 +17,6 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Bmob.initialize(this,APPID);
+        SDKInitializer.initialize(getApplicationContext());
     }
 }

@@ -18,6 +18,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets {
+        main {
+            jniLibs.srcDir 'libs'
+        }
+        debug.setRoot('build-types/debug')
+        release.setRoot('build-types/release')
+    }
 }
 
 dependencies {
