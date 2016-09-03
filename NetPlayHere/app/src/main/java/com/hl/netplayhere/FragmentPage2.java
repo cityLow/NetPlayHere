@@ -1,17 +1,15 @@
 package com.hl.netplayhere;
 
-import android.content.pm.ActivityInfo;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.TextPaint;
+import android.text.TextUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ImageSpan;
 import android.util.Log;
@@ -19,7 +17,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.PopupWindow;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.hl.netplayhere.bean.SpotDanmu;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,16 +29,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.List;
 
+import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
+import cn.bmob.v3.listener.SaveListener;
 import master.flame.danmaku.controller.IDanmakuView;
 import master.flame.danmaku.danmaku.loader.ILoader;
 import master.flame.danmaku.danmaku.loader.IllegalDataException;
 import master.flame.danmaku.danmaku.loader.android.DanmakuLoaderFactory;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.DanmakuTimer;
-import master.flame.danmaku.danmaku.model.IDanmakus;
 import master.flame.danmaku.danmaku.model.IDisplayer;
 import master.flame.danmaku.danmaku.model.android.BaseCacheStuffer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
@@ -46,33 +50,17 @@ import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
 import master.flame.danmaku.danmaku.parser.android.BiliDanmukuParser;
 import master.flame.danmaku.danmaku.util.IOUtils;
-import master.flame.danmaku.danmaku.util.SystemClock;
 
 public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private IDanmakuView mDanmakuView;
-
-    private View mMediaController;
-
-    public PopupWindow mPopupWindow;
-
-    private Button mBtnRotate;
-
-    private Button mBtnHideDanmaku;
-
-    private Button mBtnShowDanmaku;
-
     private BaseDanmakuParser mParser;
-
-    private Button mBtnPauseDanmaku;
-
-    private Button mBtnResumeDanmaku;
-
-    private Button mBtnSendDanmaku;
-
-    private Button mBtnSendDanmakuTextAndImage;
-
-    private Button mBtnSendDanmakus;
     private DanmakuContext mContext;
+    ILoader mLoader;
+
+    private ImageView mSpotBgIv;
+    private Button mSendBtn;
+    private EditText mEditText;
+
     private BaseCacheStuffer.Proxy mCacheStufferAdapter = new BaseCacheStuffer.Proxy() {
 
         private Drawable mDrawable;
@@ -122,34 +110,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         }
     };
 
-    /**
-     * 绘制背景(自定义弹幕样式)
-     */
-    private static class BackgroundCacheStuffer extends SpannedCacheStuffer {
-        // 通过扩展SimpleTextCacheStuffer或SpannedCacheStuffer个性化你的弹幕样式
-        final Paint paint = new Paint();
-
-        @Override
-        public void measure(BaseDanmaku danmaku, TextPaint paint, boolean fromWorkerThread) {
-            danmaku.padding = 10;  // 在背景绘制模式下增加padding
-            super.measure(danmaku, paint, fromWorkerThread);
-        }
-
-        @Override
-        public void drawBackground(BaseDanmaku danmaku, Canvas canvas, float left, float top) {
-            paint.setColor(0x8125309b);
-            canvas.drawRect(left + 2, top + 2, left + danmaku.paintWidth - 2, top + danmaku.paintHeight - 2, paint);
-        }
-
-        @Override
-        public void drawStroke(BaseDanmaku danmaku, String lineText, Canvas canvas, float left, float top, Paint paint) {
-            // 禁用描边绘制
-        }
-    }
-
-
     private BaseDanmakuParser createParser(InputStream stream) {
-
         if (stream == null) {
             return new BaseDanmakuParser() {
 
@@ -159,19 +120,15 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 }
             };
         }
-
-        ILoader loader = DanmakuLoaderFactory.create(DanmakuLoaderFactory.TAG_BILI);
-
         try {
-            loader.load(stream);
+            mLoader.load(stream);
         } catch (IllegalDataException e) {
             e.printStackTrace();
         }
         BaseDanmakuParser parser = new BiliDanmukuParser();
-        IDataSource<?> dataSource = loader.getDataSource();
+        IDataSource<?> dataSource = mLoader.getDataSource();
         parser.load(dataSource);
         return parser;
-
     }
 
 
@@ -185,28 +142,6 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
 
     private void findViews(View view) {
-
-        mMediaController = view.findViewById(R.id.media_controller);
-        mBtnRotate = (Button) view.findViewById(R.id.rotate);
-        mBtnHideDanmaku = (Button) view.findViewById(R.id.btn_hide);
-        mBtnShowDanmaku = (Button) view.findViewById(R.id.btn_show);
-        mBtnPauseDanmaku = (Button) view.findViewById(R.id.btn_pause);
-        mBtnResumeDanmaku = (Button) view.findViewById(R.id.btn_resume);
-        mBtnSendDanmaku = (Button) view.findViewById(R.id.btn_send);
-        mBtnSendDanmakuTextAndImage = (Button) view.findViewById(R.id.btn_send_image_text);
-        mBtnSendDanmakus = (Button) view.findViewById(R.id.btn_send_danmakus);
-        mBtnRotate.setOnClickListener(this);
-        mBtnHideDanmaku.setOnClickListener(this);
-        mMediaController.setOnClickListener(this);
-        mBtnShowDanmaku.setOnClickListener(this);
-        mBtnPauseDanmaku.setOnClickListener(this);
-        mBtnResumeDanmaku.setOnClickListener(this);
-        mBtnSendDanmaku.setOnClickListener(this);
-        mBtnSendDanmakuTextAndImage.setOnClickListener(this);
-        mBtnSendDanmakus.setOnClickListener(this);
-
-        // DanmakuView
-
         // 设置最大显示行数
         HashMap<Integer, Integer> maxLinesPair = new HashMap<Integer, Integer>();
         maxLinesPair.put(BaseDanmaku.TYPE_SCROLL_RL, 5); // 滚动弹幕最大显示5行
@@ -223,7 +158,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 .setMaximumLines(maxLinesPair)
                 .preventOverlapping(overlappingEnablePair);
         if (mDanmakuView != null) {
-            mParser = createParser(this.getResources().openRawResource(R.raw.comments));
+            mLoader = DanmakuLoaderFactory.create(DanmakuLoaderFactory.TAG_BILI);
+            mParser = createParser(this.getResources().openRawResource(R.raw.comments2));
             mDanmakuView.setCallback(new master.flame.danmaku.controller.DrawHandler.Callback() {
                 @Override
                 public void updateTimer(DanmakuTimer timer) {
@@ -244,28 +180,30 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     mDanmakuView.start();
                 }
             });
-            mDanmakuView.setOnDanmakuClickListener(new IDanmakuView.OnDanmakuClickListener() {
-                @Override
-                public void onDanmakuClick(BaseDanmaku latest) {
-                    Log.d("DFM", "onDanmakuClick text:" + latest.text);
-                }
-
-                @Override
-                public void onDanmakuClick(IDanmakus danmakus) {
-                    Log.d("DFM", "onDanmakuClick danmakus size:" + danmakus.size());
-                }
-            });
             mDanmakuView.prepare(mParser, mContext);
-            mDanmakuView.showFPS(true);
             mDanmakuView.enableDanmakuDrawingCache(true);
-            ((View) mDanmakuView).setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View view) {
-                    mMediaController.setVisibility(View.VISIBLE);
-                }
-            });
         }
+
+        mSendBtn = (Button) view.findViewById(R.id.sendBtn);
+        mSpotBgIv = (ImageView) view.findViewById(R.id.spot_img);
+        mEditText = (EditText) view.findViewById(R.id.danmuEditText);
+        mSendBtn.setOnClickListener(this);
+
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        BmobQuery<SpotDanmu> bmobQuery = new BmobQuery<>();
+        //bmobQuery.setLimit(50);
+        bmobQuery.findObjects(new FindListener<SpotDanmu>() {
+            @Override
+            public void done(List<SpotDanmu> list, BmobException e) {
+                for(SpotDanmu spotDanmu : list){
+                    addSpotDanmaku(spotDanmu);
+                }
+            }
+        });
     }
 
     @Override
@@ -305,56 +243,48 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (v == mMediaController) {
-            mMediaController.setVisibility(View.GONE);
-        }
         if (mDanmakuView == null || !mDanmakuView.isPrepared())
             return;
-        if (v == mBtnRotate) {
-            getActivity().setRequestedOrientation(getActivity().getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        } else if (v == mBtnHideDanmaku) {
-            mDanmakuView.hide();
-            // mPausedPosition = mDanmakuView.hideAndPauseDrawTask();
-        } else if (v == mBtnShowDanmaku) {
-            mDanmakuView.show();
-            // mDanmakuView.showAndResumeDrawTask(mPausedPosition); // sync to the video time in your practice
-        } else if (v == mBtnPauseDanmaku) {
-            mDanmakuView.pause();
-        } else if (v == mBtnResumeDanmaku) {
-            mDanmakuView.resume();
-        } else if (v == mBtnSendDanmaku) {
-            addDanmaku(false);
-        } else if (v == mBtnSendDanmakuTextAndImage) {
-            addDanmaKuShowTextAndImage(false);
-        } else if (v == mBtnSendDanmakus) {
-            Boolean b = (Boolean) mBtnSendDanmakus.getTag();
-            timer.cancel();
-            if (b == null || !b) {
-                mBtnSendDanmakus.setText(R.string.cancel_sending_danmakus);
-                timer = new Timer();
-                timer.schedule(new AsyncAddTask(), 0, 1000);
-                mBtnSendDanmakus.setTag(true);
-            } else {
-                mBtnSendDanmakus.setText(R.string.send_danmakus);
-                mBtnSendDanmakus.setTag(false);
-            }
+        switch (v.getId()){
+            case R.id.sendBtn:
+                String text = mEditText.getText().toString();
+                if(TextUtils.isEmpty(text)){
+                    Toast.makeText(getContext(), "弹幕内容为空", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                SpotDanmu spotDanmu = new SpotDanmu();
+                spotDanmu.setText(text);
+                //spotDanmu.setTime("0");
+                spotDanmu.setTime(mDanmakuView.getCurrentTime() + 1200 + "");
+                addSpotDanmaku(spotDanmu);
+                spotDanmu.save(/*new SaveListener<String>() {
+                    @Override
+                    public void done(String s, BmobException e) {
+                        Toast.makeText(getContext(),"save result: " + s, Toast.LENGTH_SHORT).show();
+                    }
+                }*/);                mEditText.getText().clear();
+                break;
         }
     }
 
-    Timer timer = new Timer();
-
-    class AsyncAddTask extends TimerTask {
-
-        @Override
-        public void run() {
-            for (int i = 0; i < 20; i++) {
-                addDanmaku(true);
-                SystemClock.sleep(20);
-            }
+    private void addSpotDanmaku(SpotDanmu spotDanmu){
+        BaseDanmaku danmaku = mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL);
+        if (danmaku == null || mDanmakuView == null) {
+            return;
         }
+        danmaku.text = spotDanmu.getText();
+        danmaku.padding = 5;
+        danmaku.priority = 1;
+        danmaku.isLive = true;
+        //danmaku.time = (long)(Float.parseFloat(spotDanmu.getTime()) * 1000.0F);
+        danmaku.time = mDanmakuView.getCurrentTime() + 1200;
+        danmaku.textSize = 25f * (mParser.getDisplayer().getDensity() - 0.6f);
+        danmaku.textColor = Color.RED;
+        danmaku.textShadowColor = Color.WHITE;
+        // danmaku.underlineColor = Color.GREEN;
+        danmaku.borderColor = Color.GREEN;
+        mDanmakuView.addDanmaku(danmaku);
     }
-
-    ;
 
     private void addDanmaku(boolean islive) {
         BaseDanmaku danmaku = mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL);

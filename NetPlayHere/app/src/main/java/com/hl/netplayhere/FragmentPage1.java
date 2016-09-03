@@ -1,11 +1,13 @@
 package com.hl.netplayhere;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -17,7 +19,23 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.core.PoiInfo;
+import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
+import com.baidu.mapapi.search.poi.PoiDetailResult;
+import com.baidu.mapapi.search.poi.PoiNearbySearchOption;
+import com.baidu.mapapi.search.poi.PoiResult;
+import com.baidu.mapapi.search.poi.PoiSearch;
+import com.baidu.mapapi.search.poi.PoiSortType;
+import com.hl.netplayhere.bean.HotSpot;
 import com.hl.netplayhere.util.Constant;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
 
 
 public class FragmentPage1 extends Fragment {
@@ -32,6 +50,11 @@ public class FragmentPage1 extends Fragment {
     MapView mMapView;
     BaiduMap mBaiduMap;
     LocationClient mLocClient;
+    PoiSearch mPoiSearch = PoiSearch.newInstance();
+    ListView mListView;
+    SpotAdapter mSpotAdapter;
+
+    boolean flag;
 
     public FragmentPage1() {
         // Required empty public constructor
@@ -62,6 +85,7 @@ public class FragmentPage1 extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        flag = false;
     }
 
     @Override
@@ -69,12 +93,15 @@ public class FragmentPage1 extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_page1, container, false);
         mMapView = (MapView) view.findViewById(R.id.bmapView);
+        mListView = (ListView) view.findViewById(R.id.hotSpotLv);
         return view;
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.d("yjm", "onActivityCreated");
+        flag = true;
         mBaiduMap = mMapView.getMap();
         // 开启定位图层
         mBaiduMap.setMyLocationEnabled(true);
@@ -87,8 +114,36 @@ public class FragmentPage1 extends Fragment {
         option.setScanSpan(1000);
         mLocClient.setLocOption(option);
         mLocClient.start();
-    }
 
+        OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener(){
+            public void onGetPoiResult(PoiResult result){
+                //获取POI检索结果
+                Log.e("yjm PoiResult", result.toString());
+                if(result.error !=  SearchResult.ERRORNO.NO_ERROR)
+                    return;
+                for(PoiInfo poiInfo : result.getAllPoi()){
+                    System.out.println(poiInfo.name);
+                }
+
+            }
+            public void onGetPoiDetailResult(PoiDetailResult result){
+                //获取Place详情页检索结果
+                Log.e("yjm PoiDetailResult", result.toString());
+                System.out.println("PoiDetailResult" + result.getName());
+            }
+        };
+        mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
+
+        //拉取热门景点
+        BmobQuery<HotSpot> query = new BmobQuery<>();
+        query.findObjects(new FindListener<HotSpot>() {
+            @Override
+            public void done(List<HotSpot> list, BmobException e) {
+                mSpotAdapter = new SpotAdapter(getContext(), list);
+                mListView.setAdapter(mSpotAdapter);
+            }
+        });
+    }
 
     @Override
     public void onResume() {
@@ -112,6 +167,7 @@ public class FragmentPage1 extends Fragment {
         mBaiduMap.setMyLocationEnabled(false);
         mMapView.onDestroy();
         mMapView = null;
+        flag = false;
     }
 
     /**
@@ -124,6 +180,8 @@ public class FragmentPage1 extends Fragment {
             if (location == null || mMapView == null)
                 return;
             Log.d("yjm", location.toString());
+            LatLng latLng = new LatLng(location.getLatitude(),
+                    location.getLongitude());
             MyLocationData locData = new MyLocationData.Builder()
                     .accuracy(location.getRadius())
                     // 此处设置开发者获取到的方向信息，顺时针0-360
@@ -132,11 +190,13 @@ public class FragmentPage1 extends Fragment {
             mBaiduMap.setMyLocationData(locData);
             if (Constant.isMapNeedReload) {
                 Constant.isMapNeedReload = false;
-                LatLng ll = new LatLng(location.getLatitude(),
-                        location.getLongitude());
                 MapStatus.Builder builder = new MapStatus.Builder();
-                builder.target(ll).zoom(15.0f);
+                builder.target(latLng).zoom(15.0f);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+
+                mPoiSearch.searchNearby(new PoiNearbySearchOption().keyword("景点")
+                        .pageNum(3).radius(30000).location(latLng).
+                                sortType(PoiSortType.comprehensive));
             }
         }
     }

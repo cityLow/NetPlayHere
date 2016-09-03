@@ -3,6 +3,7 @@ package com.hl.netplayhere;
 import android.app.Application;
 
 import com.baidu.mapapi.SDKInitializer;
+import com.hl.netplayhere.util.Constant;
 
 import cn.bmob.v3.Bmob;
 
@@ -11,12 +12,12 @@ import cn.bmob.v3.Bmob;
  */
 public class MyApplication extends Application {
 
-    public static String APPID ="32f93faddd6fea80b6866f9c90c9def2";
+
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Bmob.initialize(this,APPID);
+        Bmob.initialize(this, Constant.APPID);
         SDKInitializer.initialize(getApplicationContext());
     }
 }
