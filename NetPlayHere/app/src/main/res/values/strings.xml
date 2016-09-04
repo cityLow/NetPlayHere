@@ -33,4 +33,10 @@
 
     <string name="register">register</string>
     <string name="other_account_login">Third party account login</string>
+
+    <string name="login_with_weixin">微信</string>
+    <string name="login_with_sina_weibo">微博</string>
+    <string name="login_with_qq">QQ</string>
+    <string name="share_sdk">第三方登录界面</string>
+
 </resources>

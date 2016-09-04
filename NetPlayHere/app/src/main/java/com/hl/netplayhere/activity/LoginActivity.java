@@ -5,10 +5,9 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
-
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -21,6 +20,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.hl.netplayhere.R;
+import com.hl.netplayhere.sharedSDK.ThirdPartLogin;
 import com.hl.netplayhere.util.Utils;
 
 import cn.bmob.v3.BmobUser;
@@ -186,6 +186,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         switch (v.getId()){
             case R.id.register:
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+                finish();
+                break;
+            case R.id.thirdPartyLogin:
+                startActivity(new Intent(LoginActivity.this, ThirdPartLogin.class));
                 break;
             case R.id.email_sign_in_button:
                 attemptLogin();
@@ -194,5 +198,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 break;
         }
     }
+
+
 }
 
