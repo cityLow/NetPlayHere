@@ -9,6 +9,7 @@ public class SpotDanmu extends BmobObject{
 
     private String text;
     private String time;
+    private Spot spot;
 
     public String getTime() {
         return time;
@@ -26,4 +27,11 @@ public class SpotDanmu extends BmobObject{
         this.text = text;
     }
 
+    public Spot getSpot() {
+        return spot;
+    }
+
+    public void setSpot(Spot spot) {
+        this.spot = spot;
+    }
 }

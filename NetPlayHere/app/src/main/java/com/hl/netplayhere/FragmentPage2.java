@@ -6,10 +6,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ImageSpan;
 import android.util.Log;
@@ -19,8 +21,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.hl.netplayhere.bean.HotSpot;
+import com.hl.netplayhere.bean.Spot;
 import com.hl.netplayhere.bean.SpotDanmu;
 
 import java.io.IOException;
@@ -60,6 +66,11 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private ImageView mSpotBgIv;
     private Button mSendBtn;
     private EditText mEditText;
+    private EditText mSearchEt;
+    private Button mSearchBtn;
+    private ImageView mDeleteIv;
+    private TextView mSpotTv;
+    private HotSpot mCurrentSpot;
 
     private BaseCacheStuffer.Proxy mCacheStufferAdapter = new BaseCacheStuffer.Proxy() {
 
@@ -159,7 +170,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 .preventOverlapping(overlappingEnablePair);
         if (mDanmakuView != null) {
             mLoader = DanmakuLoaderFactory.create(DanmakuLoaderFactory.TAG_BILI);
-            mParser = createParser(this.getResources().openRawResource(R.raw.comments2));
+            //mParser = createParser(this.getResources().openRawResource(R.raw.comments2));
+            mParser = createParser(null);
             mDanmakuView.setCallback(new master.flame.danmaku.controller.DrawHandler.Callback() {
                 @Override
                 public void updateTimer(DanmakuTimer timer) {
@@ -189,21 +201,46 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         mEditText = (EditText) view.findViewById(R.id.danmuEditText);
         mSendBtn.setOnClickListener(this);
 
+        mSearchEt = (EditText) view.findViewById(R.id.etSearch);
+        mSearchBtn = (Button) view.findViewById(R.id.btnSearch);
+        mDeleteIv = (ImageView) view.findViewById(R.id.ivDeleteText);
+        mSpotTv = (TextView) view.findViewById(R.id.spotName);
+        mSearchBtn.setOnClickListener(this);
+        mDeleteIv.setOnClickListener(this);
+        mSearchEt.addTextChangedListener(new TextWatcher() {
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // TODO Auto-generated method stub
+
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+                // TODO Auto-generated method stub
+
+            }
+
+            public void afterTextChanged(Editable s) {
+                if (s.length() == 0) {
+                    mDeleteIv.setVisibility(View.GONE);
+                } else {
+                    mDeleteIv.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        BmobQuery<SpotDanmu> bmobQuery = new BmobQuery<>();
-        //bmobQuery.setLimit(50);
-        bmobQuery.findObjects(new FindListener<SpotDanmu>() {
-            @Override
-            public void done(List<SpotDanmu> list, BmobException e) {
-                for(SpotDanmu spotDanmu : list){
-                    addSpotDanmaku(spotDanmu);
-                }
-            }
-        });
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mCurrentSpot = new Spot();
+        mCurrentSpot.setObjectId("QC4PZZZd");
+        loadDanmu();
     }
 
     @Override
@@ -232,23 +269,23 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         }
     }
 
-	public void onBackPressed() {
-		if (mDanmakuView != null) {
-			// dont forget release!
-			mDanmakuView.release();
-			mDanmakuView = null;
-		}
-	}
+    public void onBackPressed() {
+        if (mDanmakuView != null) {
+            // dont forget release!
+            mDanmakuView.release();
+            mDanmakuView = null;
+        }
+    }
 
 
     @Override
     public void onClick(View v) {
         if (mDanmakuView == null || !mDanmakuView.isPrepared())
             return;
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.sendBtn:
                 String text = mEditText.getText().toString();
-                if(TextUtils.isEmpty(text)){
+                if (TextUtils.isEmpty(text)) {
                     Toast.makeText(getContext(), "弹幕内容为空", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -257,17 +294,54 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 //spotDanmu.setTime("0");
                 spotDanmu.setTime(mDanmakuView.getCurrentTime() + 1200 + "");
                 addSpotDanmaku(spotDanmu);
-                spotDanmu.save(/*new SaveListener<String>() {
+                spotDanmu.save(new SaveListener<String>() {
                     @Override
                     public void done(String s, BmobException e) {
-                        Toast.makeText(getContext(),"save result: " + s, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "save result: " + s, Toast.LENGTH_SHORT).show();
                     }
-                }*/);                mEditText.getText().clear();
+                });
+                mEditText.getText().clear();
+                break;
+            case R.id.btnSearch:
+                BmobQuery<Spot> query = new BmobQuery<>();
+                query.addWhereContains("name", mSearchEt.getText().toString());
+                query.findObjects(new FindListener<Spot>() {
+                    @Override
+                    public void done(List<Spot> list, BmobException e) {
+                        if (e == null) {
+                            mCurrentSpot = list.get(0);
+                            mSpotTv.setText(mCurrentSpot.getName());
+                            Glide.with(getContext()).load(mCurrentSpot.getPicture().getFileUrl()).placeholder(R.drawable.huaqinchi)
+                                    .crossFade().into(mSpotBgIv);
+                            loadDanmu();
+                        }
+                    }
+                });
+
+                break;
+            case R.id.ivDeleteText:
+                mSearchEt.getText().clear();
+                break;
+            default:
                 break;
         }
     }
 
-    private void addSpotDanmaku(SpotDanmu spotDanmu){
+    private void loadDanmu(){
+        BmobQuery<SpotDanmu> bmobQuery = new BmobQuery<>();
+        bmobQuery.addWhereEqualTo("spot",mCurrentSpot);
+        bmobQuery.findObjects(new FindListener<SpotDanmu>() {
+            @Override
+            public void done(List<SpotDanmu> list, BmobException e) {
+                for (SpotDanmu spotDanmu : list) {
+                    addSpotDanmaku(spotDanmu);
+                }
+            }
+        });
+    }
+
+
+    private void addSpotDanmaku(SpotDanmu spotDanmu) {
         BaseDanmaku danmaku = mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL);
         if (danmaku == null || mDanmakuView == null) {
             return;
@@ -282,7 +356,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         danmaku.textColor = Color.RED;
         danmaku.textShadowColor = Color.WHITE;
         // danmaku.underlineColor = Color.GREEN;
-        danmaku.borderColor = Color.GREEN;
+        //danmaku.borderColor = Color.GREEN;
         mDanmakuView.addDanmaku(danmaku);
     }
 

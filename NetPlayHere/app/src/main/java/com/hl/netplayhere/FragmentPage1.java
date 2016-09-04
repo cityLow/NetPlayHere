@@ -139,8 +139,10 @@ public class FragmentPage1 extends Fragment {
         query.findObjects(new FindListener<HotSpot>() {
             @Override
             public void done(List<HotSpot> list, BmobException e) {
-                mSpotAdapter = new SpotAdapter(getContext(), list);
-                mListView.setAdapter(mSpotAdapter);
+                if(getContext() != null){
+                    mSpotAdapter = new SpotAdapter(getContext(), list);
+                    mListView.setAdapter(mSpotAdapter);
+                }
             }
         });
     }

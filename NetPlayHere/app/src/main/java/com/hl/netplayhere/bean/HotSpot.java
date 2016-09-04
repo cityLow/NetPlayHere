@@ -1,11 +1,12 @@
 package com.hl.netplayhere.bean;
 
+import cn.bmob.v3.BmobObject;
 import cn.bmob.v3.datatype.BmobFile;
 
 /**
  * Created by yjm on 2016/8/28.
  */
-public class HotSpot {
+public class HotSpot extends BmobObject{
     private String name;
     private String address;
     private String description;

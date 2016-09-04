@@ -1,52 +1,116 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".activity.MainActivity">
 
-    <ImageView
-        android:id="@+id/spot_img"
-        android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_launcher" />
-
-    <master.flame.danmaku.ui.widget.DanmakuView
-        android:id="@+id/sv_danmaku"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:background="@drawable/top_background"
+        android:layout_height="wrap_content">
 
-    <!--<include-->
+        <Button android:id="@+id/btnSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:text="搜索"/>
+
+        <RelativeLayout android:id="@+id/rlSearchFrameDelete"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:layout_toLeftOf="@id/btnSearch">
+
+            <EditText android:id="@+id/etSearch"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:background="@drawable/search_frame"
+                android:layout_marginRight="10dp"
+                android:paddingLeft="32dp"
+                android:textSize="12sp"
+                android:hint="请输入文字..."/>
+
+            <ImageView android:id="@+id/ivDeleteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/delete"
+                android:layout_centerInParent="true"
+                android:paddingRight="20dp"
+                android:visibility="gone"/>
+
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/spotName"
+        android:layout_marginTop="21dp"
+        android:gravity="center"
+        android:text="华清池"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <FrameLayout
+        android:layout_marginTop="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/spot_img"
+            android:layout_gravity="center"
+            android:padding="4dp"
+            android:scaleType="center"
+            android:src="@drawable/huaqinchi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <master.flame.danmaku.ui.widget.DanmakuView
+            android:id="@+id/sv_danmaku"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!--<include-->
         <!--android:id="@+id/media_controller"-->
         <!--layout="@layout/media_controller"-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="fill_parent" />-->
-    <LinearLayout
-        android:layout_gravity="bottom"
-        android:orientation="horizontal"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_gravity="bottom"
+            android:orientation="horizontal"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <EditText
-            android:id="@+id/danmuEditText"
-            android:layout_width="0dp"
-            android:maxLines="4"
-            android:layout_height="wrap_content"
-            android:layout_weight="4"/>
+            <EditText
+                android:id="@+id/danmuEditText"
+                android:layout_width="0dp"
+                android:maxLines="4"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"/>
 
-        <Button
-            android:id="@+id/sendBtn"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_gravity="center_vertical"
-            android:layout_height="30dp"
-            android:text="发送弹幕"/>
+            <Button
+                android:id="@+id/sendBtn"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_gravity="center_vertical"
+                android:layout_height="30dp"
+                android:text="发送弹幕"/>
 
-    </LinearLayout>
+        </LinearLayout>
+
+    </FrameLayout>
 
 
-
-</FrameLayout>
+</LinearLayout>
