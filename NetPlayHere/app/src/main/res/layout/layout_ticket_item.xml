@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="6dp"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/ticket_pic"
+        android:layout_width="110dp"
+        android:layout_height="80dp"
+        android:scaleType="center"/>
+
+    <RelativeLayout
+        android:padding="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/ticket_name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="景点名称"/>
+
+        <TextView
+            android:id="@+id/ticket_score"
+            android:layout_below="@id/ticket_name"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="20dp"
+            android:text="景点描述景点描述景点描述景点描述景点描述"/>
+
+        <Button
+            android:id="@+id/purchase_btn"
+            android:text="兑换"
+            android:layout_alignBottom="@id/ticket_score"
+            android:gravity="center"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="12dp"
+            android:layout_width="50dp"
+            android:layout_height="30dp" />
+
+    </RelativeLayout>
+</LinearLayout>

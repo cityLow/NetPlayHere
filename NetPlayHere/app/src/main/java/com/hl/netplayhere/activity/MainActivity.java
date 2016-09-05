@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity {
                 Constant.isMapNeedReload = true;
                 if(!tabId.equals(mTextviewArray[1])){
                     FragmentPage2 fragmentPage1 = (FragmentPage2) getSupportFragmentManager().findFragmentByTag(mTextviewArray[1]);
-                    fragmentPage1.onBackPressed();
+                    if(fragmentPage1 != null)
+                        fragmentPage1.onBackPressed();
                 }
             }
         });

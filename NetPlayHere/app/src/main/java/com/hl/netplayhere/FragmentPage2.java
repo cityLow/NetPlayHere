@@ -36,10 +36,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hl.netplayhere.adapter.ViewPagerAdapter;
-import com.hl.netplayhere.bean.Score;
 import com.hl.netplayhere.bean.Spot;
 import com.hl.netplayhere.bean.SpotDanmu;
 import com.hl.netplayhere.bean.SpotPhoto;
+import com.hl.netplayhere.bean.User;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +53,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.bmob.v3.BmobQuery;
-import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.datatype.BmobFile;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
@@ -93,7 +92,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     ViewPagerAdapter pagerAdapter;
     private Timer timer;
 
-    private BmobUser mCurrentUser;
+    private User mCurrentUser;
 
     private Spot mCurrentSpot;
     static List<SpotPhoto> spotPhotoList;
@@ -276,10 +275,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         mFloatBtn = (FloatingActionButton) view.findViewById(R.id.floatingBtn);
         mFloatBtn.setOnClickListener(this);
 
-
         viewPager = (ViewPager) view.findViewById(R.id.viewpager);
-
-
     }
 
     @Override
@@ -292,7 +288,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
         Log.d("yjm", "fragment2 onViewCreated");
 
-        mCurrentUser = new BmobUser();
+        mCurrentUser = new User();
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("currentUser", Context.MODE_PRIVATE);
         String userId = sharedPreferences.getString("userId", "");
         mCurrentUser.setObjectId(userId);
@@ -390,10 +386,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                             public void done(String s, BmobException e) {
                                 Log.d("yjm", "发表图片成功，积分+2");
                                 Toast.makeText(getContext(), "发表图片成功，积分+2", Toast.LENGTH_SHORT).show();
-                                Score score = new Score();
-                                score.setUser(mCurrentUser);
-                                score.setScore(score.getScore() + 2);
-                                score.update(new UpdateListener() {
+                                mCurrentUser.setScore(mCurrentUser.getScore() + 2);
+                                mCurrentUser.update(new UpdateListener() {
                                     @Override
                                     public void done(BmobException e) {
                                         if(e == null){
@@ -401,7 +395,6 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                                         } else{
                                             Log.d("yjm", "update score fail " + e.getMessage());
                                         }
-
                                     }
                                 });
                             }
@@ -409,24 +402,27 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     }
                 });
 
-                //更新滚动图片
-                BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
-                bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
-                bmobQuery.findObjects(new FindListener<SpotPhoto>() {
-                    @Override
-                    public void done(List<SpotPhoto> list, BmobException e) {
-                        spotPhotoList = list;
-                        pagerAdapter.setSpotPhotos(list);
-                        pagerAdapter.notifyDataSetChanged();
-                    }
-                });
-
-
+               notifyViewpager();
 
             }
 
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    private void notifyViewpager(){
+        //更新滚动图片
+        BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
+        bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
+        bmobQuery.findObjects(new FindListener<SpotPhoto>() {
+            @Override
+            public void done(List<SpotPhoto> list, BmobException e) {
+                spotPhotoList = list;
+                pagerAdapter.setSpotPhotos(list);
+                pagerAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
@@ -442,13 +438,25 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 }
                 SpotDanmu spotDanmu = new SpotDanmu();
                 spotDanmu.setText(text);
-                //spotDanmu.setTime("0");
                 spotDanmu.setTime(mDanmakuView.getCurrentTime() + 1200 + "");
                 addSpotDanmaku(spotDanmu);
                 spotDanmu.save(new SaveListener<String>() {
                     @Override
                     public void done(String s, BmobException e) {
-                        Toast.makeText(getContext(), "save result: " + s, Toast.LENGTH_SHORT).show();
+                        if(e == null){
+                            Toast.makeText(getContext(), "弹幕发送成功，积分+1", Toast.LENGTH_SHORT).show();
+                            mCurrentUser.setScore(mCurrentUser.getScore() + 1);
+                            mCurrentUser.update(new UpdateListener() {
+                                @Override
+                                public void done(BmobException e) {
+                                    if(e == null){
+                                        Log.d("yjm", "update score success +1");
+                                    } else{
+                                        Log.d("yjm", "update score fail +1" + e.getMessage());
+                                    }
+                                }
+                            });
+                        }
                     }
                 });
                 mEditText.getText().clear();
@@ -462,8 +470,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                         if (e == null) {
                             mCurrentSpot = list.get(0);
                             mSpotTv.setText(mCurrentSpot.getName());
-//                            Glide.with(getContext()).load(mCurrentSpot.getPicture().getFileUrl()).placeholder(R.drawable.huaqinchi)
-//                                    .crossFade().into(mSpotBgIv);
+                            notifyViewpager();
                             loadDanmu();
                         }
                     }
@@ -476,7 +483,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 intent.setType("image/*");
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 0);
+                startActivityForResult(Intent.createChooser(intent, "请选择一张照片上传"), 0);
                 break;
             default:
                 break;

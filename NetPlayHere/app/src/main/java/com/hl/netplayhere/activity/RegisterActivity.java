@@ -11,7 +11,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.hl.netplayhere.R;
-import com.hl.netplayhere.bean.Score;
+import com.hl.netplayhere.bean.User;
 
 import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
@@ -52,25 +52,16 @@ public class RegisterActivity extends AppCompatActivity {
                     cancel = true;
                 }
                 if(!cancel){
-                    BmobUser bu = new BmobUser();
+                    User bu = new User();
                     bu.setUsername(email);
                     bu.setPassword(password);
+                    bu.setScore(0);
                     //注意：不能用save方法进行注册
                     bu.signUp(new SaveListener<BmobUser>() {
                         @Override
                         public void done(BmobUser s, BmobException e) {
                             if(e==null){
                                 Toast.makeText(RegisterActivity.this,"注册成功", Toast.LENGTH_SHORT).show();
-                                //生成一条积分记录
-                                Score score = new Score();
-                                score.setUser(s);
-                                score.setScore(0);
-                                score.save(new SaveListener<String>() {
-                                    @Override
-                                    public void done(String s, BmobException e) {
-                                        Log.d("yjm", "init score " + s);
-                                    }
-                                });
                                 finish();
                             }else{
                                 Log.d("yjm",e.toString());
