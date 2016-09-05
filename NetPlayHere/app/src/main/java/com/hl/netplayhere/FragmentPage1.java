@@ -27,10 +27,10 @@ import com.baidu.mapapi.search.poi.PoiNearbySearchOption;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
 import com.baidu.mapapi.search.poi.PoiSortType;
+import com.hl.netplayhere.adapter.SpotAdapter;
 import com.hl.netplayhere.bean.HotSpot;
 import com.hl.netplayhere.util.Constant;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import cn.bmob.v3.BmobQuery;
@@ -181,7 +181,6 @@ public class FragmentPage1 extends Fragment {
             // map view 销毁后不在处理新接收的位置
             if (location == null || mMapView == null)
                 return;
-            Log.d("yjm", location.toString());
             LatLng latLng = new LatLng(location.getLatitude(),
                     location.getLongitude());
             MyLocationData locData = new MyLocationData.Builder()

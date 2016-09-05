@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     tools:context=".activity.MainActivity">
 
@@ -52,7 +53,7 @@
 
     <TextView
         android:id="@+id/spotName"
-        android:layout_marginTop="21dp"
+        android:layout_marginTop="10dp"
         android:gravity="center"
         android:text="华清池"
         android:textSize="16sp"
@@ -61,18 +62,25 @@
         android:layout_height="wrap_content"/>
 
     <FrameLayout
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/spot_img"
-            android:layout_gravity="center"
-            android:padding="4dp"
-            android:scaleType="center"
-            android:src="@drawable/huaqinchi"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+        <!--<ImageView-->
+            <!--android:id="@+id/spot_img"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:padding="4dp"-->
+            <!--android:scaleType="center"-->
+            <!--android:src="@drawable/huaqinchi"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"/>-->
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/viewpager"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="400dp" />
+
 
         <master.flame.danmaku.ui.widget.DanmakuView
             android:id="@+id/sv_danmaku"
@@ -84,12 +92,24 @@
         <!--layout="@layout/media_controller"-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="fill_parent" />-->
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/floatingBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|bottom"
+            android:layout_marginBottom="70dp"
+            android:layout_marginRight="16dp"
+            app:backgroundTint="@color/colorPrimaryDark"
+            android:src="@android:drawable/ic_menu_camera"
+            />
+
         <LinearLayout
             android:layout_gravity="bottom"
             android:orientation="horizontal"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -98,14 +118,15 @@
                 android:layout_width="0dp"
                 android:maxLines="4"
                 android:layout_height="wrap_content"
-                android:layout_weight="4"/>
+                android:layout_weight="5"/>
 
             <Button
                 android:id="@+id/sendBtn"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:layout_width="0dp"
                 android:layout_gravity="center_vertical"
                 android:layout_height="30dp"
+                android:textSize="12sp"
                 android:text="发送弹幕"/>
 
         </LinearLayout>

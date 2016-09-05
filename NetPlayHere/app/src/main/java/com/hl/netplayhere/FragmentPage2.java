@@ -1,11 +1,22 @@
 package com.hl.netplayhere;
 
+import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -24,11 +35,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.hl.netplayhere.bean.HotSpot;
+import com.hl.netplayhere.adapter.ViewPagerAdapter;
+import com.hl.netplayhere.bean.Score;
 import com.hl.netplayhere.bean.Spot;
 import com.hl.netplayhere.bean.SpotDanmu;
+import com.hl.netplayhere.bean.SpotPhoto;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -36,11 +49,17 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.BmobUser;
+import cn.bmob.v3.datatype.BmobFile;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.SaveListener;
+import cn.bmob.v3.listener.UpdateListener;
+import cn.bmob.v3.listener.UploadFileListener;
 import master.flame.danmaku.controller.IDanmakuView;
 import master.flame.danmaku.danmaku.loader.ILoader;
 import master.flame.danmaku.danmaku.loader.IllegalDataException;
@@ -51,7 +70,6 @@ import master.flame.danmaku.danmaku.model.IDisplayer;
 import master.flame.danmaku.danmaku.model.android.BaseCacheStuffer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import master.flame.danmaku.danmaku.model.android.Danmakus;
-import master.flame.danmaku.danmaku.model.android.SpannedCacheStuffer;
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
 import master.flame.danmaku.danmaku.parser.android.BiliDanmukuParser;
@@ -63,14 +81,38 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private DanmakuContext mContext;
     ILoader mLoader;
 
-    private ImageView mSpotBgIv;
+//    private ImageView mSpotBgIv;
     private Button mSendBtn;
     private EditText mEditText;
     private EditText mSearchEt;
     private Button mSearchBtn;
     private ImageView mDeleteIv;
     private TextView mSpotTv;
-    private HotSpot mCurrentSpot;
+    private FloatingActionButton mFloatBtn;
+    private static ViewPager viewPager;
+    ViewPagerAdapter pagerAdapter;
+    private Timer timer;
+
+    private BmobUser mCurrentUser;
+
+    private Spot mCurrentSpot;
+    static List<SpotPhoto> spotPhotoList;
+    private static int mCurrentIndex = -1;
+
+    private static Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if(msg.what == -1){
+                if(mCurrentIndex == spotPhotoList.size() -1){
+                    mCurrentIndex = -1;
+                }
+                mCurrentIndex++;
+                viewPager.setCurrentItem(mCurrentIndex);
+            }
+        }
+    };
+
 
     private BaseCacheStuffer.Proxy mCacheStufferAdapter = new BaseCacheStuffer.Proxy() {
 
@@ -164,10 +206,13 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         mDanmakuView = (IDanmakuView) view.findViewById(R.id.sv_danmaku);
         mContext = DanmakuContext.create();
         mContext.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3).setDuplicateMergingEnabled(false).setScrollSpeedFactor(1.2f).setScaleTextSize(1.2f)
-                .setCacheStuffer(new SpannedCacheStuffer(), mCacheStufferAdapter) // 图文混排使用SpannedCacheStuffer
-//        .setCacheStuffer(new BackgroundCacheStuffer())  // 绘制背景使用BackgroundCacheStuffer
                 .setMaximumLines(maxLinesPair)
                 .preventOverlapping(overlappingEnablePair);
+//        mContext.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3).setDuplicateMergingEnabled(false).setScrollSpeedFactor(1.2f).setScaleTextSize(1.2f)
+//                .setCacheStuffer(new SpannedCacheStuffer(), mCacheStufferAdapter) // 图文混排使用SpannedCacheStuffer
+////        .setCacheStuffer(new BackgroundCacheStuffer())  // 绘制背景使用BackgroundCacheStuffer
+//                .setMaximumLines(maxLinesPair)
+//                .preventOverlapping(overlappingEnablePair);
         if (mDanmakuView != null) {
             mLoader = DanmakuLoaderFactory.create(DanmakuLoaderFactory.TAG_BILI);
             //mParser = createParser(this.getResources().openRawResource(R.raw.comments2));
@@ -197,7 +242,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         }
 
         mSendBtn = (Button) view.findViewById(R.id.sendBtn);
-        mSpotBgIv = (ImageView) view.findViewById(R.id.spot_img);
+        //mSpotBgIv = (ImageView) view.findViewById(R.id.spot_img);
         mEditText = (EditText) view.findViewById(R.id.danmuEditText);
         mSendBtn.setOnClickListener(this);
 
@@ -228,6 +273,13 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 }
             }
         });
+        mFloatBtn = (FloatingActionButton) view.findViewById(R.id.floatingBtn);
+        mFloatBtn.setOnClickListener(this);
+
+
+        viewPager = (ViewPager) view.findViewById(R.id.viewpager);
+
+
     }
 
     @Override
@@ -238,9 +290,38 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d("yjm", "fragment2 onViewCreated");
+
+        mCurrentUser = new BmobUser();
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("currentUser", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("userId", "");
+        mCurrentUser.setObjectId(userId);
+
+
+
         mCurrentSpot = new Spot();
         mCurrentSpot.setObjectId("QC4PZZZd");
         loadDanmu();
+
+
+        BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
+        bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
+        bmobQuery.findObjects(new FindListener<SpotPhoto>() {
+            @Override
+            public void done(List<SpotPhoto> list, BmobException e) {
+                spotPhotoList = list;
+                pagerAdapter = new ViewPagerAdapter(getContext(), list);
+                viewPager.setAdapter(pagerAdapter);
+                timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.sendEmptyMessage(-1);
+                    }
+                }, 4000, 4000);
+            }
+        });
+
     }
 
     @Override
@@ -267,6 +348,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
             mDanmakuView.release();
             mDanmakuView = null;
         }
+        if(timer != null)
+            timer.cancel();
     }
 
     public void onBackPressed() {
@@ -277,6 +360,74 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //Bitmap cameraBitmap = (Bitmap) data.getExtras().get("data");
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK && data != null) {
+            Log.d("yjm", "photo uri: " + data.getData());
+            String path = null;
+            ContentResolver contentResolver = getContext().getContentResolver();
+            Cursor cursor = contentResolver.query(data.getData(), new String[]{MediaStore.Images.Media.DATA}, null ,null, null);
+            if(cursor != null){
+                if(cursor.moveToFirst()){
+                    path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+                }
+                cursor.close();
+            }
+            if(path != null){
+                BmobFile bmobFile = new BmobFile(new File(path));
+
+                final SpotPhoto spotPhoto = new SpotPhoto();
+                spotPhoto.setUser(mCurrentUser);
+                spotPhoto.setSpot(mCurrentSpot);
+                spotPhoto.setPhoto(bmobFile);
+                bmobFile.upload(new UploadFileListener() {
+                    @Override
+                    public void done(BmobException e) {
+                        spotPhoto.save(new SaveListener<String>() {
+                            @Override
+                            public void done(String s, BmobException e) {
+                                Log.d("yjm", "发表图片成功，积分+2");
+                                Toast.makeText(getContext(), "发表图片成功，积分+2", Toast.LENGTH_SHORT).show();
+                                Score score = new Score();
+                                score.setUser(mCurrentUser);
+                                score.setScore(score.getScore() + 2);
+                                score.update(new UpdateListener() {
+                                    @Override
+                                    public void done(BmobException e) {
+                                        if(e == null){
+                                            Log.d("yjm", "update score success");
+                                        } else{
+                                            Log.d("yjm", "update score fail " + e.getMessage());
+                                        }
+
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+
+                //更新滚动图片
+                BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
+                bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
+                bmobQuery.findObjects(new FindListener<SpotPhoto>() {
+                    @Override
+                    public void done(List<SpotPhoto> list, BmobException e) {
+                        spotPhotoList = list;
+                        pagerAdapter.setSpotPhotos(list);
+                        pagerAdapter.notifyDataSetChanged();
+                    }
+                });
+
+
+
+            }
+
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 
     @Override
     public void onClick(View v) {
@@ -311,25 +462,30 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                         if (e == null) {
                             mCurrentSpot = list.get(0);
                             mSpotTv.setText(mCurrentSpot.getName());
-                            Glide.with(getContext()).load(mCurrentSpot.getPicture().getFileUrl()).placeholder(R.drawable.huaqinchi)
-                                    .crossFade().into(mSpotBgIv);
+//                            Glide.with(getContext()).load(mCurrentSpot.getPicture().getFileUrl()).placeholder(R.drawable.huaqinchi)
+//                                    .crossFade().into(mSpotBgIv);
                             loadDanmu();
                         }
                     }
                 });
-
                 break;
             case R.id.ivDeleteText:
                 mSearchEt.getText().clear();
+                break;
+            case R.id.floatingBtn:
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 0);
                 break;
             default:
                 break;
         }
     }
 
-    private void loadDanmu(){
+    private void loadDanmu() {
         BmobQuery<SpotDanmu> bmobQuery = new BmobQuery<>();
-        bmobQuery.addWhereEqualTo("spot",mCurrentSpot);
+        bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
         bmobQuery.findObjects(new FindListener<SpotDanmu>() {
             @Override
             public void done(List<SpotDanmu> list, BmobException e) {

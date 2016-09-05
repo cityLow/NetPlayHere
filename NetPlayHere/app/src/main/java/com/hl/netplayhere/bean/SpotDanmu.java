@@ -4,6 +4,7 @@ import cn.bmob.v3.BmobObject;
 
 /**
  * Created by yjm on 2016/9/3.
+ * 景点弹幕
  */
 public class SpotDanmu extends BmobObject{
 

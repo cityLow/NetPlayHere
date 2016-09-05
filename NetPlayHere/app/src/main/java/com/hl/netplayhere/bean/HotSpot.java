@@ -5,6 +5,7 @@ import cn.bmob.v3.datatype.BmobFile;
 
 /**
  * Created by yjm on 2016/8/28.
+ * 热门景点，后台手动编辑
  */
 public class HotSpot extends BmobObject{
     private String name;

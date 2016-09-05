@@ -1,4 +1,4 @@
-package com.hl.netplayhere;
+package com.hl.netplayhere.adapter;
 
 import android.content.Context;
 import android.util.Log;
@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.hl.netplayhere.R;
 import com.hl.netplayhere.bean.HotSpot;
 import java.util.List;
 
