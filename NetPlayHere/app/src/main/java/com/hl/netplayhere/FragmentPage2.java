@@ -80,7 +80,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private DanmakuContext mContext;
     ILoader mLoader;
 
-//    private ImageView mSpotBgIv;
+    //    private ImageView mSpotBgIv;
     private Button mSendBtn;
     private EditText mEditText;
     private EditText mSearchEt;
@@ -95,15 +95,15 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private User mCurrentUser;
 
     private Spot mCurrentSpot;
-    static List<SpotPhoto> spotPhotoList;
+    private static List<SpotPhoto> spotPhotoList;
     private static int mCurrentIndex = -1;
 
-    private static Handler handler = new Handler(){
+    private static Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            if(msg.what == -1){
-                if(mCurrentIndex == spotPhotoList.size() -1){
+            if (msg.what == -1) {
+                if (mCurrentIndex == spotPhotoList.size() - 1) {
                     mCurrentIndex = -1;
                 }
                 mCurrentIndex++;
@@ -294,7 +294,6 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         mCurrentUser.setObjectId(userId);
 
 
-
         mCurrentSpot = new Spot();
         mCurrentSpot.setObjectId("QC4PZZZd");
         loadDanmu();
@@ -314,7 +313,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     public void run() {
                         handler.sendEmptyMessage(-1);
                     }
-                }, 4000, 4000);
+                }, 2000, 4000);
             }
         });
 
@@ -326,6 +325,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         if (mDanmakuView != null && mDanmakuView.isPrepared()) {
             mDanmakuView.pause();
         }
+        if (timer != null)
+            timer.cancel();
     }
 
     @Override
@@ -344,7 +345,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
             mDanmakuView.release();
             mDanmakuView = null;
         }
-        if(timer != null)
+        if (timer != null)
             timer.cancel();
     }
 
@@ -364,14 +365,14 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
             Log.d("yjm", "photo uri: " + data.getData());
             String path = null;
             ContentResolver contentResolver = getContext().getContentResolver();
-            Cursor cursor = contentResolver.query(data.getData(), new String[]{MediaStore.Images.Media.DATA}, null ,null, null);
-            if(cursor != null){
-                if(cursor.moveToFirst()){
+            Cursor cursor = contentResolver.query(data.getData(), new String[]{MediaStore.Images.Media.DATA}, null, null, null);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
                     path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
                 }
                 cursor.close();
             }
-            if(path != null){
+            if (path != null) {
                 BmobFile bmobFile = new BmobFile(new File(path));
 
                 final SpotPhoto spotPhoto = new SpotPhoto();
@@ -390,9 +391,9 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                                 mCurrentUser.update(new UpdateListener() {
                                     @Override
                                     public void done(BmobException e) {
-                                        if(e == null){
+                                        if (e == null) {
                                             Log.d("yjm", "update score success");
-                                        } else{
+                                        } else {
                                             Log.d("yjm", "update score fail " + e.getMessage());
                                         }
                                     }
@@ -402,7 +403,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     }
                 });
 
-               notifyViewpager();
+                notifyViewpager();
 
             }
 
@@ -411,7 +412,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     }
 
 
-    private void notifyViewpager(){
+    private void notifyViewpager() {
         //更新滚动图片
         BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
         bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
@@ -443,15 +444,15 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 spotDanmu.save(new SaveListener<String>() {
                     @Override
                     public void done(String s, BmobException e) {
-                        if(e == null){
+                        if (e == null) {
                             Toast.makeText(getContext(), "弹幕发送成功，积分+1", Toast.LENGTH_SHORT).show();
                             mCurrentUser.setScore(mCurrentUser.getScore() + 1);
                             mCurrentUser.update(new UpdateListener() {
                                 @Override
                                 public void done(BmobException e) {
-                                    if(e == null){
+                                    if (e == null) {
                                         Log.d("yjm", "update score success +1");
-                                    } else{
+                                    } else {
                                         Log.d("yjm", "update score fail +1" + e.getMessage());
                                     }
                                 }
