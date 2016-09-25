@@ -3,14 +3,12 @@ package com.hl.netplayhere.activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTabHost;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.hl.netplayhere.FragmentPage1;
 import com.hl.netplayhere.FragmentPage2;
@@ -29,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private Class fragmentArray[] = {FragmentPage1.class, FragmentPage2.class, FragmentPage3.class};
 
     //定义数组来存放按钮图片
-    private int mImageViewArray[] = {R.drawable.tab_home_btn, R.drawable.tab_home_btn, R.drawable.tab_message_btn};
+    private int mImageViewArray[] = {R.drawable.tab_bg1, R.drawable.tab_bg2, R.drawable.tab_bg3};
 
     //Tab选项卡的文字
     private String mTextviewArray[] = {"景点导航","拍照弹幕", "积分商城"};

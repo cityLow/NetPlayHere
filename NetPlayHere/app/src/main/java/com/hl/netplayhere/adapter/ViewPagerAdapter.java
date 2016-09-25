@@ -2,7 +2,7 @@ package com.hl.netplayhere.adapter;
 
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +51,7 @@ public class ViewPagerAdapter extends PagerAdapter{
         LayoutInflater inflater = LayoutInflater.from(context);
         ImageView imageView = (ImageView) inflater.inflate(R.layout.layout_photo, null);
         container.addView(imageView);
+        Log.d("instantiateItem", "position: " + position);
         Glide.with(context).load(spotPhotos.get(position).getPhoto().getFileUrl()).placeholder(R.drawable.huaqinchi)
                                     .crossFade().into(imageView);
         return imageView;
@@ -59,7 +60,12 @@ public class ViewPagerAdapter extends PagerAdapter{
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
+        Log.d("destroyItem", "position: " + position);
         container.removeView((View) object);
+    }
+
+    public int getItemPosition(Object object) {
+        return POSITION_NONE;
     }
 
 

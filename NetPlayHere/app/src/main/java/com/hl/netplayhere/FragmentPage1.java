@@ -164,11 +164,16 @@ public class FragmentPage1 extends Fragment {
         super.onDestroy();
         Log.d("yjm", "page1 onDestroy");
         // 退出时销毁定位
-        mLocClient.stop();
+        if(mLocClient != null)
+            mLocClient.stop();
         // 关闭定位图层
-        mBaiduMap.setMyLocationEnabled(false);
-        mMapView.onDestroy();
-        mMapView = null;
+        if(mBaiduMap != null){
+            mBaiduMap.setMyLocationEnabled(false);
+        }
+        if(mMapView != null){
+            mMapView.onDestroy();
+            mMapView = null;
+        }
         flag = false;
     }
 

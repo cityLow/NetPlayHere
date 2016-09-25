@@ -40,6 +40,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private View mRegisterView;
     private View mThridPartyLoginView;
     private View mLogo;
+    private View mRegisterLl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mThridPartyLoginView = findViewById(R.id.thirdPartyLogin);
         mRegisterView.setOnClickListener(this);
         mThridPartyLoginView.setOnClickListener(this);
+
+        mRegisterLl = findViewById(R.id.register_ll);
     }
 
     /**
@@ -194,6 +197,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
+        mRegisterLl.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     @Override

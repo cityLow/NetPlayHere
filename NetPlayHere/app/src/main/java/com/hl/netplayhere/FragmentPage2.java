@@ -112,56 +112,6 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         }
     };
 
-
-    private BaseCacheStuffer.Proxy mCacheStufferAdapter = new BaseCacheStuffer.Proxy() {
-
-        private Drawable mDrawable;
-
-        @Override
-        public void prepareDrawing(final BaseDanmaku danmaku, boolean fromWorkerThread) {
-            if (danmaku.text instanceof Spanned) { // 根据你的条件检查是否需要需要更新弹幕
-                // FIXME 这里只是简单启个线程来加载远程url图片，请使用你自己的异步线程池，最好加上你的缓存池
-                new Thread() {
-
-                    @Override
-                    public void run() {
-                        String url = "http://www.bilibili.com/favicon.ico";
-                        InputStream inputStream = null;
-                        Drawable drawable = mDrawable;
-                        if (drawable == null) {
-                            try {
-                                URLConnection urlConnection = new URL(url).openConnection();
-                                inputStream = urlConnection.getInputStream();
-                                drawable = BitmapDrawable.createFromStream(inputStream, "bitmap");
-                                mDrawable = drawable;
-                            } catch (MalformedURLException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } finally {
-                                IOUtils.closeQuietly(inputStream);
-                            }
-                        }
-                        if (drawable != null) {
-                            drawable.setBounds(0, 0, 100, 100);
-                            SpannableStringBuilder spannable = createSpannable(drawable);
-                            danmaku.text = spannable;
-                            if (mDanmakuView != null) {
-                                mDanmakuView.invalidateDanmaku(danmaku, false);
-                            }
-                            return;
-                        }
-                    }
-                }.start();
-            }
-        }
-
-        @Override
-        public void releaseResource(BaseDanmaku danmaku) {
-            // TODO 重要:清理含有ImageSpan的text中的一些占用内存的资源 例如drawable
-        }
-    };
-
     private BaseDanmakuParser createParser(InputStream stream) {
         if (stream == null) {
             return new BaseDanmakuParser() {
@@ -305,12 +255,13 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
             @Override
             public void done(List<SpotPhoto> list, BmobException e) {
                 spotPhotoList = list;
-                pagerAdapter = new ViewPagerAdapter(getContext(), list);
+                pagerAdapter = new ViewPagerAdapter(getActivity(), list);
                 viewPager.setAdapter(pagerAdapter);
                 timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
+                        Log.d("timer", "send a message");
                         handler.sendEmptyMessage(-1);
                     }
                 }, 2000, 4000);
@@ -422,6 +373,15 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 spotPhotoList = list;
                 pagerAdapter.setSpotPhotos(list);
                 pagerAdapter.notifyDataSetChanged();
+                mCurrentIndex = -1;
+                timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        Log.d("timer", "send a message");
+                        handler.sendEmptyMessage(-1);
+                    }
+                }, 2000, 4000);
             }
         });
     }
@@ -440,6 +400,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 SpotDanmu spotDanmu = new SpotDanmu();
                 spotDanmu.setText(text);
                 spotDanmu.setTime(mDanmakuView.getCurrentTime() + 1200 + "");
+                spotDanmu.setSpot(mCurrentSpot);
                 addSpotDanmaku(spotDanmu);
                 spotDanmu.save(new SaveListener<String>() {
                     @Override
@@ -468,11 +429,17 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 query.findObjects(new FindListener<Spot>() {
                     @Override
                     public void done(List<Spot> list, BmobException e) {
-                        if (e == null) {
+                        if (e == null && list != null && list.size() > 0) {
+                            Toast.makeText(getContext(), "搜索成功", Toast.LENGTH_SHORT).show();
+                            timer.cancel();
                             mCurrentSpot = list.get(0);
                             mSpotTv.setText(mCurrentSpot.getName());
                             notifyViewpager();
+                            //清除当前的弹幕
+                            mDanmakuView.clearDanmakusOnScreen();
                             loadDanmu();
+                        } else{
+                            Toast.makeText(getContext(), "抱歉，找不到您输入的景点信息！", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -506,6 +473,9 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
 
     private void addSpotDanmaku(SpotDanmu spotDanmu) {
+        //如果已切换显示景点，则剩余的弹幕不再添加
+        if(!spotDanmu.getSpot().getObjectId().equals(mCurrentSpot.getObjectId()))
+            return;
         BaseDanmaku danmaku = mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL);
         if (danmaku == null || mDanmakuView == null) {
             return;
@@ -515,7 +485,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         danmaku.priority = 1;
         danmaku.isLive = true;
         //danmaku.time = (long)(Float.parseFloat(spotDanmu.getTime()) * 1000.0F);
-        danmaku.time = mDanmakuView.getCurrentTime() + 1200;
+        danmaku.time = Long.valueOf(spotDanmu.getTime());
         danmaku.textSize = 25f * (mParser.getDisplayer().getDensity() - 0.6f);
         danmaku.textColor = Color.RED;
         danmaku.textShadowColor = Color.WHITE;
