@@ -54,7 +54,7 @@ public class FragmentPage3 extends Fragment{
 		sharedPreferences = getContext().getSharedPreferences("signRecord", Context.MODE_PRIVATE);
 		String signDate = sharedPreferences.getString("signDate", "");
 
-		if(signDate.equals("") || signDate.equals(mCurrentDate)){
+		if(signDate.equals("") || !signDate.equals(mCurrentDate)){
 			mFlag = true;
 		}
 	}
@@ -77,7 +77,7 @@ public class FragmentPage3 extends Fragment{
 		super.onStart();
 
 		BmobQuery<User> bmobQuery = new BmobQuery<>();
-		bmobQuery.addWhereEqualTo("objectId", userId);
+		bmobQuery.addWhereEqualTo("username", userId);
 		bmobQuery.findObjects(new FindListener<User>() {
 			@Override
 			public void done(List<User> list, BmobException e) {
@@ -97,7 +97,7 @@ public class FragmentPage3 extends Fragment{
 				if(mFlag){
 					if(mCurrentUser == null){
 						mCurrentUser = new User();
-						mCurrentUser.setObjectId(userId);
+						mCurrentUser.setUsername(userId);
 					}
 
 					mCurrentUser.setScore(mCurrentUser.getScore() + 3);

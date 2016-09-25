@@ -26,6 +26,6 @@
     <string name="rotate">旋转屏幕</string>
 
     <string name="register">注册</string>
-    <string name="other_account_login">第三方账号登陆</string>
+    <string name="other_account_login">QQ账号登陆</string>
 
 </resources>

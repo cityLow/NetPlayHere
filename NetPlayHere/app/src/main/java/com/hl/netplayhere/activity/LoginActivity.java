@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -19,19 +20,27 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hl.netplayhere.R;
+import com.hl.netplayhere.bean.User;
+import com.hl.netplayhere.sharedSDK.LoginApi;
+import com.hl.netplayhere.sharedSDK.OnLoginListener;
 import com.hl.netplayhere.sharedSDK.ThirdPartLogin;
+import com.hl.netplayhere.sharedSDK.UserInfo;
 import com.hl.netplayhere.util.Utils;
+
+import java.util.HashMap;
 
 import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.SaveListener;
+import cn.sharesdk.tencent.qq.QQ;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener{
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -128,15 +137,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             user.login(new SaveListener<BmobUser>() {
                 @Override
                 public void done(BmobUser bombUser, BmobException e) {
-                    if(e == null){
+                    if (e == null) {
                         //存储当前登陆用户的id
                         SharedPreferences sharedPreferences = getSharedPreferences("currentUser", MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("userId", bombUser.getObjectId());
+                        editor.putString("userId", bombUser.getUsername());
                         editor.apply();
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
-                    } else{
+                        finish();
+                    } else {
                         Utils.showToast(getApplicationContext(), "登录失败,请检查之后重新尝试!");
                         Utils.loge(e);
                     }
@@ -202,12 +212,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.register:
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
                 break;
             case R.id.thirdPartyLogin:
-                startActivity(new Intent(LoginActivity.this, ThirdPartLogin.class));
+                //startActivity(new Intent(LoginActivity.this, ThirdPartLogin.class));
+                login(QQ.NAME);
                 break;
             case R.id.email_sign_in_button:
                 attemptLogin();
@@ -215,6 +226,63 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             default:
                 break;
         }
+    }
+
+    private void login(String platformName) {
+        LoginApi api = new LoginApi();
+        //设置登陆的平台后执行登陆的方法
+        api.setPlatform(platformName);
+        api.setOnLoginListener(new OnLoginListener() {
+            public boolean onLogin(String platform, final HashMap<String, Object> res) {
+                // 在这个方法填写尝试的代码，返回true表示还不能登录，需要注册
+                // 此处全部给回需要注册
+                Toast.makeText(LoginActivity.this, "login success!", Toast.LENGTH_SHORT).show();
+
+                final User bu = new User();
+                bu.setUsername((String) res.get("nickname"));
+                bu.setPassword("123456");
+                bu.setScore(0);
+                //注意：不能用save方法进行注册
+                bu.signUp(new SaveListener<BmobUser>() {
+                    @Override
+                    public void done(BmobUser s, BmobException e) {
+                        if (e == null) {
+                            Log.d("yjm", "第三方注册成功");
+                        } else {
+                            Log.d("yjm", "第三方注册失败: " + e.getMessage());
+                        }
+                        showProgress(true);
+                        bu.login(new SaveListener<BmobUser>() {
+                            @Override
+                            public void done(BmobUser bombUser, BmobException e) {
+                                if (e == null) {
+                                    //存储当前登陆用户的id
+                                    SharedPreferences sharedPreferences = getSharedPreferences("currentUser", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString("userId", bombUser.getUsername());
+                                    editor.apply();
+                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                } else {
+                                    Utils.showToast(getApplicationContext(), "登录失败,请检查之后重新尝试!");
+                                    Utils.loge(e);
+                                }
+                                showProgress(false);
+                            }
+                        });
+
+                    }
+                });
+                return true;
+            }
+
+            public boolean onRegister(UserInfo info) {
+                // 填写处理注册信息的代码，返回true表示数据合法，注册页面可以关闭
+                return true;
+            }
+        });
+        api.login(this);
     }
 
 
