@@ -130,7 +130,7 @@ public class FragmentPage3 extends Fragment{
 			@Override
 			public void done(List<Ticket> list, BmobException e) {
 				if(e == null){
-					ticketAdapter = new TicketAdapter(getContext(), list);
+					ticketAdapter = new TicketAdapter(getContext(), list, mCurrentUser);
 					mListView.setAdapter(ticketAdapter);
 				}
 			}

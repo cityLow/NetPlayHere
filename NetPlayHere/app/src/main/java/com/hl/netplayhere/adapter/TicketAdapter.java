@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.hl.netplayhere.R;
 import com.hl.netplayhere.bean.Ticket;
+import com.hl.netplayhere.bean.User;
 
 import java.util.List;
 
@@ -24,11 +25,13 @@ public class TicketAdapter extends BaseAdapter{
     List<Ticket> list;
     Context context;
     LayoutInflater layoutInflater;
+    private User currentUser;
 
-    public TicketAdapter(Context context, List<Ticket> list) {
+    public TicketAdapter(Context context, List<Ticket> list, User currentUser) {
         this.list = list;
         this.context = context;
         layoutInflater = LayoutInflater.from(context);
+        this.currentUser = currentUser;
     }
 
 
@@ -61,12 +64,22 @@ public class TicketAdapter extends BaseAdapter{
         } else{
             viewHolder = (ViewHolder) convertView.getTag();
         }
-        Ticket ticket = list.get(position);
+        final Ticket ticket = list.get(position);
 
         viewHolder.purchaseBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context, "兑换成功", Toast.LENGTH_SHORT).show();
+                if (currentUser == null) {
+                    return;
+                }
+                int yourCurrentScore = currentUser.getScore();
+                int ticketScore = ticket.getScore();
+                if (yourCurrentScore >= ticketScore) {
+                    Toast.makeText(context, "兑换成功", Toast.LENGTH_SHORT).show();
+
+                } else {
+                    Toast.makeText(context, "当前积分不足", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

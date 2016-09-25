@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,7 +19,6 @@ import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.BackgroundColorSpan;
@@ -42,11 +40,7 @@ import com.hl.netplayhere.bean.SpotPhoto;
 import com.hl.netplayhere.bean.User;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
@@ -66,13 +60,11 @@ import master.flame.danmaku.danmaku.loader.android.DanmakuLoaderFactory;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.DanmakuTimer;
 import master.flame.danmaku.danmaku.model.IDisplayer;
-import master.flame.danmaku.danmaku.model.android.BaseCacheStuffer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import master.flame.danmaku.danmaku.model.android.Danmakus;
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
 import master.flame.danmaku.danmaku.parser.android.BiliDanmukuParser;
-import master.flame.danmaku.danmaku.util.IOUtils;
 
 public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private IDanmakuView mDanmakuView;
@@ -464,6 +456,10 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         bmobQuery.findObjects(new FindListener<SpotDanmu>() {
             @Override
             public void done(List<SpotDanmu> list, BmobException e) {
+                if (list == null) {
+                    return;
+                }
+
                 for (SpotDanmu spotDanmu : list) {
                     addSpotDanmaku(spotDanmu);
                 }
