@@ -256,7 +256,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                         Log.d("timer", "send a message");
                         handler.sendEmptyMessage(-1);
                     }
-                }, 2000, 4000);
+                }, 2000, 6000);
             }
         });
 

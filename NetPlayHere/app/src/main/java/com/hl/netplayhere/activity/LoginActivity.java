@@ -236,38 +236,30 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 bu.setUsername((String) res.get("nickname"));
                 bu.setPassword("123456");
                 bu.setScore(0);
-                //注意：不能用save方法进行注册
-                bu.signUp(new SaveListener<BmobUser>() {
-                    @Override
-                    public void done(BmobUser s, BmobException e) {
-                        if (e == null) {
-                            Log.d("yjm", "第三方注册成功");
-                        } else {
-                            Log.d("yjm", "第三方注册失败: " + e.getMessage());
-                        }
-                        showProgress(true);
-                        bu.login(new SaveListener<BmobUser>() {
-                            @Override
-                            public void done(BmobUser bombUser, BmobException e) {
-                                if (e == null) {
-                                    //存储当前登陆用户的id
-                                    SharedPreferences sharedPreferences = getSharedPreferences("currentUser", MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString("userId", bombUser.getUsername());
-                                    editor.apply();
-                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    Utils.showToast(getApplicationContext(), "登录失败,请检查之后重新尝试!");
-                                    Utils.loge(e);
-                                }
-                                showProgress(false);
-                            }
-                        });
 
-                    }
-                });
+                SharedPreferences sharedPreferences = getSharedPreferences("currentUser", MODE_PRIVATE);
+                if(!sharedPreferences.getString("userId", "").equals(bu.getUsername()))
+                {
+                    //注意：不能用save方法进行注册
+                    bu.signUp(new SaveListener<BmobUser>() {
+                        @Override
+                        public void done(BmobUser s, BmobException e) {
+                            if (e == null) {
+                                Log.d("yjm", "第三方注册成功");
+                            } else {
+                                Log.d("yjm", "第三方注册失败: " + e.getMessage());
+                            }
+                        }
+                    });
+                }
+
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("userId", bu.getUsername());
+                editor.apply();
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+
                 return true;
             }
 

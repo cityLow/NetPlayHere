@@ -50,7 +50,7 @@ public class FragmentPage1 extends Fragment {
     MapView mMapView;
     BaiduMap mBaiduMap;
     LocationClient mLocClient;
-    PoiSearch mPoiSearch = PoiSearch.newInstance();
+//    PoiSearch mPoiSearch = PoiSearch.newInstance();
     ListView mListView;
     SpotAdapter mSpotAdapter;
 
@@ -115,24 +115,24 @@ public class FragmentPage1 extends Fragment {
         mLocClient.setLocOption(option);
         mLocClient.start();
 
-        OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener(){
-            public void onGetPoiResult(PoiResult result){
-                //获取POI检索结果
-                Log.e("yjm PoiResult", result.toString());
-                if(result.error !=  SearchResult.ERRORNO.NO_ERROR)
-                    return;
-                for(PoiInfo poiInfo : result.getAllPoi()){
-                    System.out.println(poiInfo.name);
-                }
-
-            }
-            public void onGetPoiDetailResult(PoiDetailResult result){
-                //获取Place详情页检索结果
-                Log.e("yjm PoiDetailResult", result.toString());
-                System.out.println("PoiDetailResult" + result.getName());
-            }
-        };
-        mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
+//        OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener(){
+//            public void onGetPoiResult(PoiResult result){
+//                //获取POI检索结果
+//                Log.e("yjm PoiResult", result.toString());
+//                if(result.error !=  SearchResult.ERRORNO.NO_ERROR)
+//                    return;
+//                for(PoiInfo poiInfo : result.getAllPoi()){
+//                    System.out.println(poiInfo.name);
+//                }
+//
+//            }
+//            public void onGetPoiDetailResult(PoiDetailResult result){
+//                //获取Place详情页检索结果
+//                Log.e("yjm PoiDetailResult", result.toString());
+//                System.out.println("PoiDetailResult" + result.getName());
+//            }
+//        };
+//        mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
 
         //拉取热门景点
         BmobQuery<HotSpot> query = new BmobQuery<>();
@@ -200,9 +200,9 @@ public class FragmentPage1 extends Fragment {
                 builder.target(latLng).zoom(15.0f);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
 
-                mPoiSearch.searchNearby(new PoiNearbySearchOption().keyword("景点")
-                        .pageNum(3).radius(30000).location(latLng).
-                                sortType(PoiSortType.comprehensive));
+//                mPoiSearch.searchNearby(new PoiNearbySearchOption().keyword("景点")
+//                        .pageNum(3).radius(30000).location(latLng).
+//                                sortType(PoiSortType.comprehensive));
             }
         }
     }
