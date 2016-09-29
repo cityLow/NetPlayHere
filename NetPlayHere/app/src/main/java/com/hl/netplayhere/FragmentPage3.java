@@ -88,9 +88,6 @@ public class FragmentPage3 extends Fragment{
 			}
 		});
 
-
-
-
 		mSignBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {

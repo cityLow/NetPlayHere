@@ -362,6 +362,9 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         bmobQuery.findObjects(new FindListener<SpotPhoto>() {
             @Override
             public void done(List<SpotPhoto> list, BmobException e) {
+                if (list == null || list.size() <= 0) {
+                    return;
+                }
                 spotPhotoList = list;
                 pagerAdapter.setSpotPhotos(list);
                 pagerAdapter.notifyDataSetChanged();
