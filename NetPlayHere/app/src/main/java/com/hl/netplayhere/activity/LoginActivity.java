@@ -137,6 +137,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("userId", bombUser.getUsername());
                         editor.apply();
+
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
                         finish();
@@ -258,6 +259,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 editor.apply();
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
+
+                bu.login(new SaveListener<BmobUser>() {
+                    @Override
+                    public void done(BmobUser bmobUser, BmobException e) {
+                        if (e == null) {
+                            SharedPreferences sharedLogin = getSharedPreferences("currentUser", MODE_PRIVATE);
+                            SharedPreferences.Editor ed = sharedLogin.edit();
+                            ed.putString("userId", bmobUser.getUsername());
+                            ed.apply();
+
+                        }
+                    }
+                });
+
                 finish();
 
                 return true;

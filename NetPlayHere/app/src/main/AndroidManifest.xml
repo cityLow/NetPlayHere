@@ -33,6 +33,7 @@
 <!--shared SDK-->
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <!--baidu key yjm 7r1P75GFzZcEQruIUepvK8iUauEe2j46-->
 
     <application
         android:name=".MyApplication"
@@ -43,7 +44,7 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="7r1P75GFzZcEQruIUepvK8iUauEe2j46" />
+            android:value="YTg0gzwepydGEoHWAkEIMYdj8bE4NF51" />
 
         <activity
             android:name=".activity.LoginActivity"

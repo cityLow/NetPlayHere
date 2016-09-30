@@ -235,6 +235,17 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         String userId = sharedPreferences.getString("userId", "");
         mCurrentUser.setObjectId(userId);
 
+        BmobQuery<User> bmobQuery1 = new BmobQuery<>();
+        bmobQuery1.addWhereEqualTo("username", userId);
+        bmobQuery1.findObjects(new FindListener<User>() {
+            @Override
+            public void done(List<User> list, BmobException e) {
+                if(e == null){
+                    mCurrentUser = list.get(0);
+                    Log.d("yjm", mCurrentUser.getUsername());
+                }
+            }
+        });
 
         mCurrentSpot = new Spot();
         mCurrentSpot.setObjectId("QC4PZZZd");

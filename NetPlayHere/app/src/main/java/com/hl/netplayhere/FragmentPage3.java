@@ -52,7 +52,7 @@ public class FragmentPage3 extends Fragment{
 		userId = sharedPreferences.getString("userId", "");
 
 		sharedPreferences = getContext().getSharedPreferences("signRecord", Context.MODE_PRIVATE);
-		String signDate = sharedPreferences.getString("signDate", "");
+		String signDate = sharedPreferences.getString("signDate" + userId, "");
 
 		if(signDate.equals("") || !signDate.equals(mCurrentDate)){
 			mFlag = true;
@@ -107,7 +107,7 @@ public class FragmentPage3 extends Fragment{
 
 								SharedPreferences sharedPreferences = getContext().getSharedPreferences("signRecord", Context.MODE_PRIVATE);
 								SharedPreferences.Editor editor = sharedPreferences.edit();
-								editor.putString("signDate", mCurrentDate);
+								editor.putString("signDate" + userId, mCurrentDate);
 								editor.apply();
 
 								mFlag = false;
