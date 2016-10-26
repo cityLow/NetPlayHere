@@ -5,6 +5,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+
 import cn.bmob.v3.exception.BmobException;
 
 /**
@@ -50,5 +53,18 @@ public class Utils {
         }
     }
 
+    public static long getFileSize(File file) throws Exception
+    {
+        long size = 0;
+        if (file.exists()){
+            FileInputStream fis = null;
+            fis = new FileInputStream(file);
+            size = fis.available();
+        }
+        else{
+            Log.e("获取文件大小","文件不存在!");
+        }
+        return size;
+    }
 
 }

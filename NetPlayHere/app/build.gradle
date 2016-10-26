@@ -36,11 +36,13 @@ dependencies {
     compile 'com.android.support:support-v4:23.4.0'
     compile 'com.github.ctiao:DanmakuFlameMaster:0.4.9'
     compile 'com.github.bumptech.glide:glide:3.7.0'
+//    compile 'me.shaohui.advancedluban:library:1.2.5'
     compile files('libs/sharedSDK/MobCommons-2016.0830.1940.jar')
     compile files('libs/sharedSDK/MobTools-2016.0830.1940.jar')
     compile files('libs/sharedSDK/ShareSDK-Core-2.7.7.jar')
     compile files('libs/sharedSDK/ShareSDK-QQ-2.7.7.jar')
-    compile files('libs/sharedSDK/ShareSDK-SinaWeibo-2.7.7.jar')
-    compile files('libs/sharedSDK/ShareSDK-Wechat-2.7.7.jar')
-    compile files('libs/sharedSDK/ShareSDK-Wechat-Core-2.7.7.jar')
+//    compile files('libs/sharedSDK/ShareSDK-SinaWeibo-2.7.7.jar')
+//    compile files('libs/sharedSDK/ShareSDK-Wechat-2.7.7.jar')
+//    compile files('libs/sharedSDK/ShareSDK-Wechat-Core-2.7.7.jar')
+    compile project(path: ':compressLibrary')
 }

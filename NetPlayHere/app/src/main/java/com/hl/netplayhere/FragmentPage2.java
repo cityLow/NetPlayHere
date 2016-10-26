@@ -38,8 +38,10 @@ import com.hl.netplayhere.bean.Spot;
 import com.hl.netplayhere.bean.SpotDanmu;
 import com.hl.netplayhere.bean.SpotPhoto;
 import com.hl.netplayhere.bean.User;
+import com.hl.netplayhere.util.Utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -65,8 +67,13 @@ import master.flame.danmaku.danmaku.model.android.Danmakus;
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
 import master.flame.danmaku.danmaku.parser.android.BiliDanmukuParser;
+import me.shaohui.advancedluban.Luban;
+import me.shaohui.advancedluban.OnCompressListener;
 
 public class FragmentPage2 extends Fragment implements View.OnClickListener {
+
+    private static final String TAG = "FragmentPage2";
+
     private IDanmakuView mDanmakuView;
     private BaseDanmakuParser mParser;
     private DanmakuContext mContext;
@@ -240,7 +247,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         bmobQuery1.findObjects(new FindListener<User>() {
             @Override
             public void done(List<User> list, BmobException e) {
-                if(e == null){
+                if (e == null) {
                     mCurrentUser = list.get(0);
                     Log.d("yjm", mCurrentUser.getUsername());
                 }
@@ -327,42 +334,68 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 cursor.close();
             }
             if (path != null) {
-                BmobFile bmobFile = new BmobFile(new File(path));
-
-                final SpotPhoto spotPhoto = new SpotPhoto();
-                spotPhoto.setUser(mCurrentUser);
-                spotPhoto.setSpot(mCurrentSpot);
-                spotPhoto.setPhoto(bmobFile);
-                bmobFile.upload(new UploadFileListener() {
-                    @Override
-                    public void done(BmobException e) {
-                        spotPhoto.save(new SaveListener<String>() {
+                File file = new File(path);
+                try {
+                    Log.d(TAG, "before compress:" + Utils.getFileSize(file));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Luban.get(getContext())                     // initialization of Luban
+                        .load(file)                     // set the image file to compress
+                        .putGear(Luban.THIRD_GEAR)      // set the compress mode, default is : THIRD_GEAR
+                        .launch(new OnCompressListener() {
                             @Override
-                            public void done(String s, BmobException e) {
-                                Log.d("yjm", "发表图片成功，积分+2");
-                                Toast.makeText(getContext(), "发表图片成功，积分+2", Toast.LENGTH_SHORT).show();
-                                mCurrentUser.setScore(mCurrentUser.getScore() + 2);
-                                mCurrentUser.update(new UpdateListener() {
-                                    @Override
-                                    public void done(BmobException e) {
-                                        if (e == null) {
-                                            Log.d("yjm", "update score success");
-                                        } else {
-                                            Log.d("yjm", "update score fail " + e.getMessage());
-                                        }
-                                    }
-                                });
+                            public void onStart() {
+
+                            }
+
+                            @Override
+                            public void onSuccess(File file) throws Exception {
+                                Log.d(TAG, "after compress:" + Utils.getFileSize(file));
+                                uploadImage(file);
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+
+                            }
+                        });
+            }
+
+            notifyViewpager();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void uploadImage(File file) {
+        BmobFile bmobFile = new BmobFile(file);
+        final SpotPhoto spotPhoto = new SpotPhoto();
+        spotPhoto.setUser(mCurrentUser);
+        spotPhoto.setSpot(mCurrentSpot);
+        spotPhoto.setPhoto(bmobFile);
+        bmobFile.upload(new UploadFileListener() {
+            @Override
+            public void done(BmobException e) {
+                spotPhoto.save(new SaveListener<String>() {
+                    @Override
+                    public void done(String s, BmobException e) {
+                        Log.d("yjm", "发表图片成功，积分+2");
+                        Toast.makeText(getContext(), "发表图片成功，积分+2", Toast.LENGTH_SHORT).show();
+                        mCurrentUser.setScore(mCurrentUser.getScore() + 2);
+                        mCurrentUser.update(new UpdateListener() {
+                            @Override
+                            public void done(BmobException e) {
+                                if (e == null) {
+                                    Log.d("yjm", "update score success");
+                                } else {
+                                    Log.d("yjm", "update score fail " + e.getMessage());
+                                }
                             }
                         });
                     }
                 });
-
-                notifyViewpager();
-
             }
-
-        }
-        super.onActivityResult(requestCode, resultCode, data);
+        });
     }
 
 
@@ -391,6 +424,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
             }
         });
     }
+
 
     @Override
     public void onClick(View v) {
@@ -444,7 +478,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                             //清除当前的弹幕
                             mDanmakuView.clearDanmakusOnScreen();
                             loadDanmu();
-                        } else{
+                        } else {
                             Toast.makeText(getContext(), "抱歉，找不到您输入的景点信息！", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -484,7 +518,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
     private void addSpotDanmaku(SpotDanmu spotDanmu) {
         //如果已切换显示景点，则剩余的弹幕不再添加
-        if(!spotDanmu.getSpot().getObjectId().equals(mCurrentSpot.getObjectId()))
+        if (!spotDanmu.getSpot().getObjectId().equals(mCurrentSpot.getObjectId()))
             return;
         BaseDanmaku danmaku = mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL);
         if (danmaku == null || mDanmakuView == null) {
@@ -527,7 +561,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
     private void addDanmaKuShowTextAndImage(boolean islive) {
         BaseDanmaku danmaku = mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL);
-        Drawable drawable = getResources().getDrawable(R.drawable.ic_launcher);
+        Drawable drawable = getResources().getDrawable(R.mipmap.ic_launcher);
         drawable.setBounds(0, 0, 100, 100);
         SpannableStringBuilder spannable = createSpannable(drawable);
         danmaku.text = spannable;

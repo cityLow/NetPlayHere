@@ -64,7 +64,7 @@ public class SpotAdapter extends BaseAdapter {
         viewHolder.addressTv.setText("地址:"+hotSpot.getAddress());
         viewHolder.descriptionTv.setText(hotSpot.getDescription());
         Glide.with(context).load(hotSpot.getPicture().getFileUrl())
-                .centerCrop().placeholder(R.drawable.ic_launcher)
+                .centerCrop().placeholder(R.mipmap.ic_launcher)
                 .crossFade().into(viewHolder.spotIv);
         Log.d("yjm", "picture url : " + hotSpot.getPicture().getFileUrl());
         return convertView;

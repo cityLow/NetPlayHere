@@ -86,7 +86,7 @@ public class TicketAdapter extends BaseAdapter{
         viewHolder.nameTv.setText(ticket.getName());
         viewHolder.scoreTv.setText(ticket.getScore()+"积分");
         Glide.with(context).load(ticket.getTicketPic().getFileUrl())
-                .centerCrop().placeholder(R.drawable.ic_launcher)
+                .centerCrop().placeholder(R.mipmap.ic_launcher)
                 .crossFade().into(viewHolder.picIv);
         return convertView;
     }

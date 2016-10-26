@@ -212,7 +212,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
                 break;
             case R.id.thirdPartyLogin:
-                //startActivity(new Intent(LoginActivity.this, ThirdPartLogin.class));
                 login(QQ.NAME);
                 break;
             case R.id.email_sign_in_button:
