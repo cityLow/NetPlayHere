@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -19,6 +20,7 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.overlayutil.PoiOverlay;
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
@@ -50,7 +52,7 @@ public class FragmentPage1 extends Fragment {
     MapView mMapView;
     BaiduMap mBaiduMap;
     LocationClient mLocClient;
-//    PoiSearch mPoiSearch = PoiSearch.newInstance();
+    PoiSearch mPoiSearch = PoiSearch.newInstance();
     ListView mListView;
     SpotAdapter mSpotAdapter;
 
@@ -115,31 +117,40 @@ public class FragmentPage1 extends Fragment {
         mLocClient.setLocOption(option);
         mLocClient.start();
 
-//        OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener(){
-//            public void onGetPoiResult(PoiResult result){
-//                //获取POI检索结果
-//                Log.e("yjm PoiResult", result.toString());
-//                if(result.error !=  SearchResult.ERRORNO.NO_ERROR)
-//                    return;
-//                for(PoiInfo poiInfo : result.getAllPoi()){
-//                    System.out.println(poiInfo.name);
-//                }
-//
-//            }
-//            public void onGetPoiDetailResult(PoiDetailResult result){
-//                //获取Place详情页检索结果
-//                Log.e("yjm PoiDetailResult", result.toString());
-//                System.out.println("PoiDetailResult" + result.getName());
-//            }
-//        };
-//        mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
+        OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener() {
+            public void onGetPoiResult(PoiResult result) {
+                //获取POI检索结果
+                Log.e("yjm PoiResult", result.toString());
+                if (result == null || result.error == SearchResult.ERRORNO.RESULT_NOT_FOUND) {
+                    return;
+                }
+                if (result.error == SearchResult.ERRORNO.NO_ERROR) {
+                    mBaiduMap.clear();
+                    //创建PoiOverlay
+                    PoiOverlay overlay = new MyPoiOverlay(mBaiduMap);
+                    //设置overlay可以处理标注点击事件
+                    mBaiduMap.setOnMarkerClickListener(overlay);
+                    //设置PoiOverlay数据
+                    overlay.setData(result);
+                    //添加PoiOverlay到地图中
+                    overlay.addToMap();
+                    overlay.zoomToSpan();
+                }
+            }
+
+            public void onGetPoiDetailResult(PoiDetailResult result) {
+                //获取Place详情页检索结果
+//                Log.d("yjm PoiDetailResult: ", result.toString());
+            }
+        };
+        mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
 
         //拉取热门景点
         BmobQuery<HotSpot> query = new BmobQuery<>();
         query.findObjects(new FindListener<HotSpot>() {
             @Override
             public void done(List<HotSpot> list, BmobException e) {
-                if(getContext() != null){
+                if (getContext() != null) {
                     mSpotAdapter = new SpotAdapter(getContext(), list);
                     mListView.setAdapter(mSpotAdapter);
                 }
@@ -164,13 +175,13 @@ public class FragmentPage1 extends Fragment {
         super.onDestroy();
         Log.d("yjm", "page1 onDestroy");
         // 退出时销毁定位
-        if(mLocClient != null)
+        if (mLocClient != null)
             mLocClient.stop();
         // 关闭定位图层
-        if(mBaiduMap != null){
+        if (mBaiduMap != null) {
             mBaiduMap.setMyLocationEnabled(false);
         }
-        if(mMapView != null){
+        if (mMapView != null) {
             mMapView.onDestroy();
             mMapView = null;
         }
@@ -197,13 +208,28 @@ public class FragmentPage1 extends Fragment {
             if (Constant.isMapNeedReload) {
                 Constant.isMapNeedReload = false;
                 MapStatus.Builder builder = new MapStatus.Builder();
-                builder.target(latLng).zoom(15.0f);
+                builder.target(latLng).zoom(13.0f);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
 
-//                mPoiSearch.searchNearby(new PoiNearbySearchOption().keyword("景点")
-//                        .pageNum(3).radius(30000).location(latLng).
-//                                sortType(PoiSortType.comprehensive));
+                mPoiSearch.searchNearby(new PoiNearbySearchOption().keyword("景点")
+                        .pageNum(10).radius(30000).location(latLng).
+                                sortType(PoiSortType.comprehensive));
             }
+        }
+    }
+
+
+
+    private class MyPoiOverlay extends PoiOverlay {
+        public MyPoiOverlay(BaiduMap baiduMap) {
+            super(baiduMap);
+        }
+        @Override
+        public boolean onPoiClick(int index) {
+            PoiInfo poiInfo = getPoiResult().getAllPoi().get(index);
+            Log.d("yjm", "marker click: " + poiInfo.name + ",,," + poiInfo.address);
+            Toast.makeText(getContext(), "景点名称: "+poiInfo.name+"\n地址: "+ poiInfo.address, Toast.LENGTH_LONG).show();
+            return true;
         }
     }
 }
