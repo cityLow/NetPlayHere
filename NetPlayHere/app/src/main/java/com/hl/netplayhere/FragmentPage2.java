@@ -38,10 +38,12 @@ import com.hl.netplayhere.bean.Spot;
 import com.hl.netplayhere.bean.SpotDanmu;
 import com.hl.netplayhere.bean.SpotPhoto;
 import com.hl.netplayhere.bean.User;
+import com.hl.netplayhere.sensitive.KWSeeker;
+import com.hl.netplayhere.sensitive.SimpleKWSeekerProcessor;
+import com.hl.netplayhere.sensitive.conf.Config;
 import com.hl.netplayhere.util.Utils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +98,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private Spot mCurrentSpot;
     private static List<SpotPhoto> spotPhotoList;
     private static int mCurrentIndex = -1;
+
+    private KWSeeker kwSeeker;
 
     private static Handler handler = new Handler() {
         @Override
@@ -277,7 +281,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 }, 2000, 6000);
             }
         });
-
+        kwSeeker  = SimpleKWSeekerProcessor.newInstance(getContext()).getKWSeeker(Config.DEFAULT_KEY);
     }
 
     @Override
@@ -437,6 +441,15 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     Toast.makeText(getContext(), "弹幕内容为空", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                String temp = kwSeeker.replaceWords(text);
+                final String notify;
+                if(!temp.equals(text)){
+                    text = temp;
+                    notify = "您的弹幕包含敏感词汇，已被系统自动和谐";
+                } else{
+                    notify = "弹幕发送成功，积分+1";
+                }
                 SpotDanmu spotDanmu = new SpotDanmu();
                 spotDanmu.setText(text);
                 spotDanmu.setTime(mDanmakuView.getCurrentTime() + 1200 + "");
@@ -446,7 +459,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     @Override
                     public void done(String s, BmobException e) {
                         if (e == null) {
-                            Toast.makeText(getContext(), "弹幕发送成功，积分+1", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), notify, Toast.LENGTH_SHORT).show();
                             mCurrentUser.setScore(mCurrentUser.getScore() + 1);
                             mCurrentUser.update(new UpdateListener() {
                                 @Override
