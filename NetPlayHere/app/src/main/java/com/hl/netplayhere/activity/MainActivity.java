@@ -3,7 +3,11 @@ package com.hl.netplayhere.activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTabHost;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TabHost;
@@ -65,9 +69,9 @@ public class MainActivity extends AppCompatActivity {
             public void onTabChanged(String tabId) {
                 Constant.isMapNeedReload = true;
                 if(!tabId.equals(mTextviewArray[1])){
-                    FragmentPage2 fragmentPage1 = (FragmentPage2) getSupportFragmentManager().findFragmentByTag(mTextviewArray[1]);
-                    if(fragmentPage1 != null)
-                        fragmentPage1.onBackPressed();
+                    FragmentPage2 fragmentPage = (FragmentPage2) getSupportFragmentManager().findFragmentByTag(mTextviewArray[1]);
+                    if(fragmentPage != null)
+                        fragmentPage.onBackPressed();
                 }
             }
         });
@@ -86,6 +90,28 @@ public class MainActivity extends AppCompatActivity {
         textView.setText(mTextviewArray[index]);
 
         return view;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action1:
+
+                return true;
+            case R.id.action2:
+                FragmentPage1 fragmentPage1 = (FragmentPage1) getSupportFragmentManager().findFragmentByTag(mTextviewArray[0]);
+                fragmentPage1.searchNearby();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
 

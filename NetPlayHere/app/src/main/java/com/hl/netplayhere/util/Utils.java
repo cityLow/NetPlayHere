@@ -1,6 +1,7 @@
 package com.hl.netplayhere.util;
 
 import android.content.Context;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -65,6 +66,13 @@ public class Utils {
             Log.e("获取文件大小","文件不存在!");
         }
         return size;
+    }
+
+    public static String getSdcardDir() {
+        if (Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)) {
+            return Environment.getExternalStorageDirectory().toString();
+        }
+        return null;
     }
 
 }

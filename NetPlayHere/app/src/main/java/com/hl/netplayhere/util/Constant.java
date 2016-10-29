@@ -8,4 +8,7 @@ public class Constant {
     public static boolean isMapNeedReload = true;
     //Bmob appID
     public static String APPID ="32f93faddd6fea80b6866f9c90c9def2";
+    //景点搜索半径
+    public static final int RADIUS = 15000;
+    public static final String ROUTE_PLAN_NODE = "routePlanNode";
 }
