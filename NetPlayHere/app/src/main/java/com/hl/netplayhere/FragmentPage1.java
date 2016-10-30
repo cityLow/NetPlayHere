@@ -1,10 +1,12 @@
 package com.hl.netplayhere;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -19,10 +21,17 @@ import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapStatus;
+import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.Overlay;
+import com.baidu.mapapi.map.OverlayOptions;
+import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.overlayutil.PoiOverlay;
 import com.baidu.mapapi.search.core.PoiInfo;
@@ -34,13 +43,20 @@ import com.baidu.mapapi.search.poi.PoiNearbySearchOption;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
 import com.baidu.mapapi.search.poi.PoiSortType;
+import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.navisdk.adapter.BNRoutePlanNode;
 import com.baidu.navisdk.adapter.BaiduNaviManager;
+import com.baidu.trace.OnEntityListener;
+import com.baidu.trace.TraceLocation;
 import com.hl.netplayhere.activity.NavigationActivity;
 import com.hl.netplayhere.adapter.SpotAdapter;
 import com.hl.netplayhere.bean.HotSpot;
 import com.hl.netplayhere.util.Constant;
 import com.hl.netplayhere.util.Utils;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,28 +82,55 @@ public class FragmentPage1 extends Fragment {
     ListView mListView;
     SpotAdapter mSpotAdapter;
     LatLng mLatLng;
-
     boolean flag;
+
+
+    protected static MapStatusUpdate msUpdate = null;
+    /**
+     * Entity监听器
+     */
+    private static OnEntityListener entityListener = null;
+    /**
+     * 图标
+     */
+    private static BitmapDescriptor realtimeBitmap;
+
+    private static Overlay overlay = null;
+
+    // 覆盖物
+    protected static OverlayOptions overlayOptions;
+
+    // 路线覆盖物
+    private static PolylineOptions polyline = null;
+
+    private static List<LatLng> pointList = new ArrayList<LatLng>();
+
+    private Intent serviceIntent = null;
+
+    /**
+     * 刷新地图线程(获取实时点)
+     */
+    protected RefreshThread refreshThread = null;
+    protected static boolean isInUploadFragment = true;
+
+    private static boolean isRegister = false;
+
+    protected static PowerManager pm = null;
+
+    protected static PowerManager.WakeLock wakeLock = null;
+
+    private TrackReceiver trackReceiver = new TrackReceiver();
+
+    private boolean isTraceStarted = false;
+
+    private MyApplication trackApp;
 
     public FragmentPage1() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment FragmentPager3.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static FragmentPage1 newInstance(String param1, String param2) {
+    public static FragmentPage1 newInstance(MyApplication myApplication) {
         FragmentPage1 fragment = new FragmentPage1();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -140,6 +183,10 @@ public class FragmentPage1 extends Fragment {
             }
         });
         initNavi();
+
+        trackApp = (MyApplication) getActivity().getApplication();
+        trackApp.initBmap(mMapView);
+        initOnEntityListener();
     }
 
     @Override
@@ -172,6 +219,8 @@ public class FragmentPage1 extends Fragment {
         if (mPoiSearch != null)
             mPoiSearch.destroy();
         flag = false;
+        startRefreshThread(false);
+        MonitorService.isCheck = false;
     }
 
     /**
@@ -326,4 +375,221 @@ public class FragmentPage1 extends Fragment {
             Toast.makeText(getContext(), "算路失败", Toast.LENGTH_SHORT).show();
         }
     }
+
+    /**
+     * 显示实时轨迹
+     *
+     * @param location
+     */
+    protected void showRealtimeTrack(TraceLocation location) {
+
+        if (null == refreshThread || !refreshThread.refresh) {
+            return;
+        }
+
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+
+        if (Math.abs(latitude - 0.0) < 0.000001 && Math.abs(longitude - 0.0) < 0.000001) {
+//            mHandler.obtainMessage(-1, "当前查询无轨迹点").sendToTarget();
+            Toast.makeText(getContext(), "当前查询无轨迹点", Toast.LENGTH_SHORT).show();
+        } else {
+            LatLng latLng = new LatLng(latitude, longitude);
+            if (1 == location.getCoordType()) {
+                LatLng sourceLatLng = latLng;
+                CoordinateConverter converter = new
+                        CoordinateConverter();
+                converter.from(CoordinateConverter.CoordType.GPS);
+                converter.coord(sourceLatLng);
+                latLng = converter.convert();
+            }
+            pointList.add(latLng);
+
+            if (isInUploadFragment) {
+                // 绘制实时点
+                drawRealtimePoint(latLng);
+            }
+        }
+    }
+
+    /**
+     * 绘制实时点
+     *
+     * @param point
+     */
+    private void drawRealtimePoint(LatLng point) {
+
+        if (null != overlay) {
+            overlay.remove();
+        }
+
+        MapStatus mMapStatus = new MapStatus.Builder().target(point).zoom(19).build();
+
+        msUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
+
+        if (null == realtimeBitmap) {
+            realtimeBitmap = BitmapDescriptorFactory
+                    .fromResource(R.drawable.icon_geo);
+        }
+
+        overlayOptions = new MarkerOptions().position(point)
+                .icon(realtimeBitmap).zIndex(9).draggable(true);
+
+        if (pointList.size() >= 2 && pointList.size() <= 10000) {
+            // 添加路线（轨迹）
+            polyline = new PolylineOptions().width(10)
+                    .color(Color.BLUE).points(pointList);
+        }
+
+        addMarker();
+
+    }
+
+    /**
+     * 添加地图覆盖物
+     */
+    protected void addMarker() {
+
+        if (null != msUpdate) {
+            trackApp.getmBaiduMap().setMapStatus(msUpdate);
+        }
+
+        // 路线覆盖物
+        if (null != polyline) {
+            trackApp.getmBaiduMap().addOverlay(polyline);
+        }
+
+        // 实时点覆盖物
+        if (null != overlayOptions) {
+            overlay = trackApp.getmBaiduMap().addOverlay(overlayOptions);
+        }
+
+    }
+
+    public void startRefreshThread(boolean isStart) {
+        if (null == refreshThread) {
+            refreshThread = new RefreshThread();
+        }
+        refreshThread.refresh = isStart;
+        if (isStart) {
+            if (!refreshThread.isAlive()) {
+                refreshThread.start();
+            }
+        } else {
+            refreshThread = null;
+        }
+    }
+
+    protected class RefreshThread extends Thread {
+
+        protected boolean refresh = true;
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            Looper.prepare();
+            while (refresh) {
+                // 轨迹服务开启成功后，调用queryEntityList()查询最新轨迹；
+                // 未开启轨迹服务时，调用queryRealtimeLoc()进行实时定位。
+                if (isTraceStarted) {
+                    queryEntityList();
+                } else {
+                    queryRealtimeLoc();
+                }
+
+                try {
+                    Thread.sleep(Constant.gatherInterval * 1000);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    System.out.println("线程休眠失败");
+                }
+            }
+            Looper.loop();
+        }
+    }
+
+    /**
+     * 查询entityList
+     */
+    private void queryEntityList() {
+        // entity标识列表（多个entityName，以英文逗号"," 分割）
+        String entityNames = trackApp.getEntityName();
+        // 属性名称（格式为 : "key1=value1,key2=value2,....."）
+        String columnKey = "";
+        // 返回结果的类型（0 : 返回全部结果，1 : 只返回entityName的列表）
+        int returnType = 0;
+        // 活跃时间（指定该字段时，返回从该时间点之后仍有位置变动的entity的实时点集合）
+        int activeTime = (int) (System.currentTimeMillis() / 1000 - Constant.packInterval);
+        // 分页大小
+        int pageSize = 10;
+        // 分页索引
+        int pageIndex = 1;
+
+        trackApp.getClient().queryEntityList(trackApp.getServiceId(), entityNames, columnKey, returnType, activeTime,
+                pageSize,
+                pageIndex, entityListener);
+    }
+
+    /**
+     * 查询实时轨迹
+     */
+    private void queryRealtimeLoc() {
+        trackApp.getClient().queryRealtimeLoc(trackApp.getServiceId(), entityListener);
+    }
+
+    /**
+     * 初始化OnEntityListener
+     */
+    private void initOnEntityListener() {
+        entityListener = new OnEntityListener() {
+
+            // 请求失败回调接口
+            @Override
+            public void onRequestFailedCallback(String arg0) {
+                // TODO Auto-generated method stub
+                trackApp.getmHandler().obtainMessage(0, "entity请求失败回调接口消息 : " + arg0).sendToTarget();
+            }
+
+            // 添加entity回调接口
+            public void onAddEntityCallback(String arg0) {
+                // TODO Auto-generated method stub
+                trackApp.getmHandler().obtainMessage(0, "添加entity回调接口消息 : " + arg0).sendToTarget();
+            }
+
+            // 查询entity列表回调接口
+            @Override
+            public void onQueryEntityListCallback(String message) {
+                // TODO Auto-generated method stub
+                Log.d("yjm trace", "onQueryEntityListCallback " + message);
+                TraceLocation entityLocation = new TraceLocation();
+                try {
+                    JSONObject dataJson = new JSONObject(message);
+                    if (null != dataJson && dataJson.has("status") && dataJson.getInt("status") == 0
+                            && dataJson.has("size") && dataJson.getInt("size") > 0) {
+                        JSONArray entities = dataJson.getJSONArray("entities");
+                        JSONObject entity = entities.getJSONObject(0);
+                        JSONObject point = entity.getJSONObject("realtime_point");
+                        JSONArray location = point.getJSONArray("location");
+                        entityLocation.setLongitude(location.getDouble(0));
+                        entityLocation.setLatitude(location.getDouble(1));
+                    }
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    trackApp.getmHandler().obtainMessage(0, "解析entityList回调消息失败").sendToTarget();
+                    return;
+                }
+                Log.d("yjm trace", entityLocation.toString());
+                showRealtimeTrack(entityLocation);
+            }
+
+            @Override
+            public void onReceiveLocation(TraceLocation location) {
+                // TODO Auto-generated method stub
+                Log.d("yjm trace", "onReceiveLocation " + location.toString());
+                showRealtimeTrack(location);
+            }
+
+        };
+    }
+
 }

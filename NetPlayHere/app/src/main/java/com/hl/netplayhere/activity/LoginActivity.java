@@ -53,16 +53,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordView = (EditText) findViewById(R.id.password);
         mLogo = findViewById(R.id.logo_iv);
-//        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-//            @Override
-//            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-//                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-//                    attemptLogin();
-//                    return true;
-//                }
-//                return false;
-//            }
-//        });
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(this);
@@ -145,7 +135,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         Utils.showToast(getApplicationContext(), "登录失败,请检查之后重新尝试!");
                         Utils.loge(e);
                     }
-                    showProgress(false);
+                    //showProgress(false);
                 }
             });
         }

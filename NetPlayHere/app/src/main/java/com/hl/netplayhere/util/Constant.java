@@ -11,4 +11,13 @@ public class Constant {
     //景点搜索半径
     public static final int RADIUS = 15000;
     public static final String ROUTE_PLAN_NODE = "routePlanNode";
+    /**
+     * 采集周期（单位 : 秒）
+     */
+    public static int gatherInterval = 5;
+
+    /**
+     * 打包周期（单位 : 秒）
+     */
+    public static int packInterval = 15;
 }
