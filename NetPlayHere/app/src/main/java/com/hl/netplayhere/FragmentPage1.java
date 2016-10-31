@@ -33,6 +33,7 @@ import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.model.LatLngBounds;
 import com.baidu.mapapi.overlayutil.PoiOverlay;
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.SearchResult;
@@ -47,19 +48,24 @@ import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.navisdk.adapter.BNRoutePlanNode;
 import com.baidu.navisdk.adapter.BaiduNaviManager;
 import com.baidu.trace.OnEntityListener;
+import com.baidu.trace.OnTrackListener;
 import com.baidu.trace.TraceLocation;
 import com.hl.netplayhere.activity.NavigationActivity;
 import com.hl.netplayhere.adapter.SpotAdapter;
 import com.hl.netplayhere.bean.HotSpot;
 import com.hl.netplayhere.util.Constant;
+import com.hl.netplayhere.util.GsonService;
+import com.hl.netplayhere.util.HistoryTrackData;
 import com.hl.netplayhere.util.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.exception.BmobException;
@@ -103,9 +109,7 @@ public class FragmentPage1 extends Fragment {
     // 路线覆盖物
     private static PolylineOptions polyline = null;
 
-    private static List<LatLng> pointList = new ArrayList<LatLng>();
-
-    private Intent serviceIntent = null;
+    private static List<LatLng> pointList = new ArrayList<>();
 
     /**
      * 刷新地图线程(获取实时点)
@@ -124,6 +128,10 @@ public class FragmentPage1 extends Fragment {
     private boolean isTraceStarted = false;
 
     private MyApplication trackApp;
+
+    private View rootView;// 缓存Fragment view
+
+    protected static OnTrackListener trackListener = null;
 
     public FragmentPage1() {
         // Required empty public constructor
@@ -147,10 +155,19 @@ public class FragmentPage1 extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_page1, container, false);
-        mMapView = (MapView) view.findViewById(R.id.bmapView);
-        mListView = (ListView) view.findViewById(R.id.hotSpotLv);
-        return view;
+        if (rootView == null)
+        {
+            rootView = inflater.inflate(R.layout.fragment_page1, null);
+        }
+        // 缓存的rootView需要判断是否已经被加过parent，如果有parent需要从parent删除，要不然会发生这个rootview已经有parent的错误。
+        ViewGroup parent = (ViewGroup) rootView.getParent();
+        if (parent != null)
+        {
+            parent.removeView(rootView);
+        }
+        mMapView = (MapView) rootView.findViewById(R.id.bmapView);
+        mListView = (ListView) rootView.findViewById(R.id.hotSpotLv);
+        return rootView;
     }
 
     @Override
@@ -187,6 +204,7 @@ public class FragmentPage1 extends Fragment {
         trackApp = (MyApplication) getActivity().getApplication();
         trackApp.initBmap(mMapView);
         initOnEntityListener();
+        initOnTrackListener();
     }
 
     @Override
@@ -333,12 +351,12 @@ public class FragmentPage1 extends Fragment {
 
             @Override
             public void initSuccess() {
-
+                Log.d("navi init", "initSuccess");
             }
 
             @Override
             public void initFailed() {
-
+                Log.d("navi init", "initFailed");
             }
         }, null, null, null);
     }
@@ -382,11 +400,9 @@ public class FragmentPage1 extends Fragment {
      * @param location
      */
     protected void showRealtimeTrack(TraceLocation location) {
-
         if (null == refreshThread || !refreshThread.refresh) {
             return;
         }
-
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
 
@@ -412,11 +428,6 @@ public class FragmentPage1 extends Fragment {
         }
     }
 
-    /**
-     * 绘制实时点
-     *
-     * @param point
-     */
     private void drawRealtimePoint(LatLng point) {
 
         if (null != overlay) {
@@ -538,6 +549,31 @@ public class FragmentPage1 extends Fragment {
     }
 
     /**
+     * 查询历史轨迹
+     */
+    public void queryHistoryTrack(int processed, String processOption) {
+        int startTime = (int) (System.currentTimeMillis() / 1000 - 12 * 60 * 60);
+        int endTime = (int) (System.currentTimeMillis() / 1000);
+        // entity标识
+        String entityName = trackApp.getEntityName();
+        // 是否返回精简的结果（0 : 否，1 : 是）
+        int simpleReturn = 0;
+        // 是否返回纠偏后轨迹（0 : 否，1 : 是）
+        int isProcessed = processed;
+        // 分页大小
+        int pageSize = 1000;
+        // 分页索引
+        int pageIndex = 1;
+
+        trackApp.getClient().queryHistoryTrack(trackApp.getServiceId(), entityName, simpleReturn,
+                isProcessed, processOption,
+                startTime, endTime,
+                pageSize,
+                pageIndex,
+                trackListener);
+    }
+
+    /**
      * 初始化OnEntityListener
      */
     private void initOnEntityListener() {
@@ -590,6 +626,129 @@ public class FragmentPage1 extends Fragment {
             }
 
         };
+    }
+
+    /**
+     * 初始化OnTrackListener
+     */
+    private void initOnTrackListener() {
+        trackListener = new OnTrackListener() {
+            // 请求失败回调接口
+            @Override
+            public void onRequestFailedCallback(String arg0) {
+                // TODO Auto-generated method stub
+                trackApp.getmHandler().obtainMessage(0, "track请求失败回调接口消息 : " + arg0).sendToTarget();
+            }
+
+            // 查询历史轨迹回调接口
+            @Override
+            public void onQueryHistoryTrackCallback(String arg0) {
+                // TODO Auto-generated method stub
+                super.onQueryHistoryTrackCallback(arg0);
+                showHistoryTrack(arg0);
+            }
+
+            @Override
+            public void onQueryDistanceCallback(String arg0) {
+                // TODO Auto-generated method stub
+                try {
+                    JSONObject dataJson = new JSONObject(arg0);
+                    if (null != dataJson && dataJson.has("status") && dataJson.getInt("status") == 0) {
+                        double distance = dataJson.getDouble("distance");
+                        DecimalFormat df = new DecimalFormat("#.0");
+                        trackApp.getmHandler().obtainMessage(0, "里程 : " + df.format(distance) + "米").sendToTarget();
+                    }
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    trackApp.getmHandler().obtainMessage(0, "queryDistance回调消息 : " + arg0).sendToTarget();
+                }
+            }
+
+            @Override
+            public Map<String, String> onTrackAttrCallback() {
+                // TODO Auto-generated method stub
+                System.out.println("onTrackAttrCallback");
+                return null;
+            }
+
+        };
+    }
+
+    /**
+     * 显示历史轨迹
+     *
+     * @param historyTrack
+     */
+    private void showHistoryTrack(String historyTrack) {
+
+        HistoryTrackData historyTrackData = GsonService.parseJson(historyTrack,
+                HistoryTrackData.class);
+
+        List<LatLng> latLngList = new ArrayList<LatLng>();
+        if (historyTrackData != null && historyTrackData.getStatus() == 0) {
+            if (historyTrackData.getListPoints() != null) {
+                latLngList.addAll(historyTrackData.getListPoints());
+            }
+            // 绘制历史轨迹
+            drawHistoryTrack(latLngList, historyTrackData.distance);
+        }
+
+    }
+
+    /**
+     * 绘制历史轨迹
+     *
+     * @param points
+     */
+    private void drawHistoryTrack(final List<LatLng> points, final double distance) {
+        // 绘制新覆盖物前，清空之前的覆盖物
+        trackApp.getmBaiduMap().clear();
+
+        if (points.size() == 1) {
+            points.add(points.get(0));
+        }
+
+        if (points == null || points.size() == 0) {
+            trackApp.getmHandler().obtainMessage(0, "当前查询无轨迹点").sendToTarget();
+            //resetMarker();
+        } else if (points.size() > 1) {
+
+            LatLng llC = points.get(0);
+            LatLng llD = points.get(points.size() - 1);
+            LatLngBounds bounds = new LatLngBounds.Builder()
+                    .include(llC).include(llD).build();
+
+            msUpdate = MapStatusUpdateFactory.newLatLngBounds(bounds);
+
+//            bmStart = BitmapDescriptorFactory.fromResource(R.mipmap.icon_start);
+//            bmEnd = BitmapDescriptorFactory.fromResource(R.mipmap.icon_end);
+
+            // 添加起点图标
+//            startMarker = new MarkerOptions()
+//                    .position(points.get(points.size() - 1)).icon(bmStart)
+//                    .zIndex(9).draggable(true);
+
+            // 添加终点图标
+//            endMarker = new MarkerOptions().position(points.get(0))
+//                    .icon(bmEnd).zIndex(9).draggable(true);
+
+            // 添加路线（轨迹）
+            polyline = new PolylineOptions().width(10)
+                    .color(Color.BLUE).points(points);
+
+            MarkerOptions markerOptions = new MarkerOptions();
+            markerOptions.flat(true);
+            markerOptions.anchor(0.5f, 0.5f);
+            markerOptions.icon(BitmapDescriptorFactory
+                    .fromResource(R.drawable.icon_geo));
+            markerOptions.position(points.get(points.size() - 1));
+
+            addMarker();
+
+            trackApp.getmHandler().obtainMessage(0, "当前轨迹里程为 : " + (int) distance + "米").sendToTarget();
+
+        }
+
     }
 
 }

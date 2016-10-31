@@ -39,6 +39,7 @@ public class FragmentPage3 extends Fragment{
 	private String userId;
 	private boolean mFlag;
 
+	private View rootView;
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,15 +62,20 @@ public class FragmentPage3 extends Fragment{
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-
-		View view = inflater.inflate(R.layout.fragment_3, null);
-		mListView = (ListView) view.findViewById(R.id.ticketList);
-		mScoreTv = (TextView) view.findViewById(R.id.userScoreTv);
-		mSignBtn = (Button) view.findViewById(R.id.signBtn);
-
-
-
-		return view;
+		if (rootView == null)
+		{
+			rootView = inflater.inflate(R.layout.fragment_3, null);
+		}
+		// 缓存的rootView需要判断是否已经被加过parent，如果有parent需要从parent删除，要不然会发生这个rootview已经有parent的错误。
+		ViewGroup parent = (ViewGroup) rootView.getParent();
+		if (parent != null)
+		{
+			parent.removeView(rootView);
+		}
+		mListView = (ListView) rootView.findViewById(R.id.ticketList);
+		mScoreTv = (TextView) rootView.findViewById(R.id.userScoreTv);
+		mSignBtn = (Button) rootView.findViewById(R.id.signBtn);
+		return rootView;
 	}
 
 	@Override

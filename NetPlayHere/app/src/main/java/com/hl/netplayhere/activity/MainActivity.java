@@ -161,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
                 //Fragment fragment = TrackUploadFragment.newInstance((MyApplication) getApplication());
 //                getSupportFragmentManager().beginTransaction().replace(R.id.realtabcontent,fragment , mTextviewArray[0]).commit();
                 fragmentPage1.startRefreshThread(true);
+                fragmentPage1.queryHistoryTrack(0, null);
                 return true;
             case R.id.action2:
                 fragmentPage1.searchNearby();
