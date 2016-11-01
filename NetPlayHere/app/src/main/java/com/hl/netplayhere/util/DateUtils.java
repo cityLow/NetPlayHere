@@ -36,7 +36,6 @@ public class DateUtils {
     /**
      * 将当前时间戳转化为标准时间函数
      *
-     * @param timestamp
      * @return
      */
     @SuppressLint("SimpleDateFormat")
@@ -91,7 +90,6 @@ public class DateUtils {
     /**
      * 将当前时间戳转化为标准时间函数
      *
-     * @param timestamp
      * @return
      */
     @SuppressLint("SimpleDateFormat")

@@ -11,9 +11,13 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
@@ -89,7 +93,8 @@ public class FragmentPage1 extends Fragment {
     SpotAdapter mSpotAdapter;
     LatLng mLatLng;
     boolean flag;
-
+    LinearLayout mFunctionILl;
+    PopupWindow popupWindow;
 
     protected static MapStatusUpdate msUpdate = null;
     /**
@@ -167,6 +172,13 @@ public class FragmentPage1 extends Fragment {
         }
         mMapView = (MapView) rootView.findViewById(R.id.bmapView);
         mListView = (ListView) rootView.findViewById(R.id.hotSpotLv);
+        mFunctionILl = (LinearLayout) rootView.findViewById(R.id.functionll);
+        mFunctionILl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPopupWindow(v);
+            }
+        });
         return rootView;
     }
 
@@ -656,7 +668,7 @@ public class FragmentPage1 extends Fragment {
                     if (null != dataJson && dataJson.has("status") && dataJson.getInt("status") == 0) {
                         double distance = dataJson.getDouble("distance");
                         DecimalFormat df = new DecimalFormat("#.0");
-                        trackApp.getmHandler().obtainMessage(0, "里程 : " + df.format(distance) + "米").sendToTarget();
+                        //trackApp.getmHandler().obtainMessage(0, "里程 : " + df.format(distance) + "米").sendToTarget();
                     }
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
@@ -747,6 +759,42 @@ public class FragmentPage1 extends Fragment {
 
             trackApp.getmHandler().obtainMessage(0, "当前轨迹里程为 : " + (int) distance + "米").sendToTarget();
 
+        }
+
+    }
+
+    private void showPopupWindow(View view){
+        if(popupWindow == null){
+            View contentView = LayoutInflater.from(getContext()).inflate(
+                    R.layout.pop_window, null);
+            popupWindow = new PopupWindow(contentView,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+            popupWindow.setTouchable(true);
+            popupWindow.setTouchInterceptor(new View.OnTouchListener() {
+
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+
+                    Log.i("mengdd", "onTouch : ");
+
+                    return false;
+                    // 这里如果返回true的话，touch事件将被拦截
+                    // 拦截后 PopupWindow的onTouchEvent不被调用，这样点击外部区域无法dismiss
+                }
+            });
+            LinearLayout item1 = (LinearLayout) contentView.findViewById(R.id.pop_item1);
+            item1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    popupWindow.dismiss();
+                }
+            });
+        }
+
+        if(!popupWindow.isShowing()){
+            popupWindow.showAsDropDown(view, Utils.dip2px(getContext(), 40), 0);
+        } else{
+            popupWindow.dismiss();
         }
 
     }
