@@ -12,11 +12,14 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.trace.LBSTraceClient;
 import com.baidu.trace.LocationMode;
 import com.baidu.trace.Trace;
-import com.hl.netplayhere.util.Constant;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.lang.ref.WeakReference;
 
-import cn.bmob.v3.Bmob;
+import cn.bmob.newim.BmobIM;
+
 
 /**
  * Created by lining on 16/8/13.
@@ -54,12 +57,16 @@ public class MyApplication extends Application {
 
     private TrackHandler mHandler = null;
 
+    private static MyApplication INSTANCE;
+    public static MyApplication INSTANCE(){
+        return INSTANCE;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Bmob.initialize(this, Constant.APPID);
         mContext = getApplicationContext();
+        INSTANCE = this;
         SDKInitializer.initialize(this);
         // 初始化轨迹服务客户端
         client = new LBSTraceClient(mContext);
@@ -68,6 +75,15 @@ public class MyApplication extends Application {
         // 设置定位模式
         client.setLocationMode(LocationMode.High_Accuracy);
         mHandler = new TrackHandler(this);
+
+
+        //只有主进程运行的时候才需要初始化
+        if (getApplicationInfo().packageName.equals(getMyProcessName())){
+            //im初始化
+            BmobIM.init(this);
+            //注册消息接收器
+            BmobIM.registerDefaultMessageHandler(new DemoMessageHandler(this));
+        }
     }
 
     public void initBmap(MapView bmapView) {
@@ -119,5 +135,23 @@ public class MyApplication extends Application {
 
     public BaiduMap getmBaiduMap() {
         return mBaiduMap;
+    }
+
+
+    /**
+     * 获取当前运行的进程名
+     * @return
+     */
+    public static String getMyProcessName() {
+        try {
+            File file = new File("/proc/" + android.os.Process.myPid() + "/" + "cmdline");
+            BufferedReader mBufferedReader = new BufferedReader(new FileReader(file));
+            String processName = mBufferedReader.readLine().trim();
+            mBufferedReader.close();
+            return processName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

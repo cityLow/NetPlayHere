@@ -5,7 +5,7 @@ import cn.bmob.v3.BmobUser;
 /**
  * Created by yongjiaming on 16-9-5.
  */
-public class User extends BmobUser{
+public class User extends BmobUser {
 
     private int score;
 
@@ -15,5 +15,17 @@ public class User extends BmobUser{
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+
+    private String avatar;
+
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

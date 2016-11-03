@@ -84,13 +84,16 @@ public class FragmentPage3 extends Fragment{
 
 		BmobQuery<User> bmobQuery = new BmobQuery<>();
 		bmobQuery.addWhereEqualTo("username", userId);
-		bmobQuery.findObjects(new FindListener<User>() {
+		bmobQuery.findObjects(getContext(), new FindListener<User>() {
 			@Override
-			public void done(List<User> list, BmobException e) {
-				if(e == null){
-					mCurrentUser = list.get(0);
-					mScoreTv.setText("当前积分:" + mCurrentUser.getScore() + "(" + mCurrentUser.getUsername() + ")");
-				}
+			public void onSuccess(List<User> list) {
+				mCurrentUser = list.get(0);
+				mScoreTv.setText("当前积分:" + mCurrentUser.getScore() + "(" + mCurrentUser.getUsername() + ")");
+			}
+
+			@Override
+			public void onError(int i, String s) {
+
 			}
 		});
 
@@ -104,20 +107,23 @@ public class FragmentPage3 extends Fragment{
 					}
 
 					mCurrentUser.setScore(mCurrentUser.getScore() + 3);
-					mCurrentUser.update(new UpdateListener() {
+					mCurrentUser.update(getContext(), new UpdateListener() {
 						@Override
-						public void done(BmobException e) {
-							if(e == null){
-								Toast.makeText(getContext(), "签到成功,积分+3", Toast.LENGTH_SHORT).show();
-								mScoreTv.setText("当前积分:" + mCurrentUser.getScore() + "(" + mCurrentUser.getUsername() + ")");
+						public void onSuccess() {
+							Toast.makeText(getContext(), "签到成功,积分+3", Toast.LENGTH_SHORT).show();
+							mScoreTv.setText("当前积分:" + mCurrentUser.getScore() + "(" + mCurrentUser.getUsername() + ")");
 
-								SharedPreferences sharedPreferences = getContext().getSharedPreferences("signRecord", Context.MODE_PRIVATE);
-								SharedPreferences.Editor editor = sharedPreferences.edit();
-								editor.putString("signDate" + userId, mCurrentDate);
-								editor.apply();
+							SharedPreferences sharedPreferences = getContext().getSharedPreferences("signRecord", Context.MODE_PRIVATE);
+							SharedPreferences.Editor editor = sharedPreferences.edit();
+							editor.putString("signDate" + userId, mCurrentDate);
+							editor.apply();
 
-								mFlag = false;
-							}
+							mFlag = false;
+						}
+
+						@Override
+						public void onFailure(int i, String s) {
+
 						}
 					});
 
@@ -129,13 +135,16 @@ public class FragmentPage3 extends Fragment{
 		});
 
 		final BmobQuery<Ticket> ticketBmobQuery = new BmobQuery<>();
-		ticketBmobQuery.findObjects(new FindListener<Ticket>() {
+		ticketBmobQuery.findObjects(getContext(), new FindListener<Ticket>() {
 			@Override
-			public void done(List<Ticket> list, BmobException e) {
-				if(e == null){
-					ticketAdapter = new TicketAdapter(getContext(), list, mCurrentUser);
-					mListView.setAdapter(ticketAdapter);
-				}
+			public void onSuccess(List<Ticket> list) {
+				ticketAdapter = new TicketAdapter(getContext(), list, mCurrentUser);
+				mListView.setAdapter(ticketAdapter);
+			}
+
+			@Override
+			public void onError(int i, String s) {
+
 			}
 		});
 

@@ -57,16 +57,17 @@ public class RegisterActivity extends AppCompatActivity {
                     bu.setPassword(password);
                     bu.setScore(0);
                     //注意：不能用save方法进行注册
-                    bu.signUp(new SaveListener<BmobUser>() {
+                    bu.signUp(RegisterActivity.this, new SaveListener() {
                         @Override
-                        public void done(BmobUser s, BmobException e) {
-                            if(e==null){
-                                Toast.makeText(RegisterActivity.this,"注册成功", Toast.LENGTH_SHORT).show();
-                                finish();
-                            }else{
-                                Log.d("yjm",e.toString());
-                                Toast.makeText(RegisterActivity.this, "注册失败:" +e.getMessage(), Toast.LENGTH_LONG).show();
-                            }
+                        public void onSuccess() {
+                            Toast.makeText(RegisterActivity.this,"注册成功", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+
+                        @Override
+                        public void onFailure(int i, String s) {
+                            Log.d("yjm",s);
+                            Toast.makeText(RegisterActivity.this, "注册失败:" +s, Toast.LENGTH_LONG).show();
                         }
                     });
                 }

@@ -63,10 +63,10 @@ public class SpotAdapter extends BaseAdapter {
         viewHolder.nameTv.setText(hotSpot.getName());
         viewHolder.addressTv.setText("地址:"+hotSpot.getAddress());
         viewHolder.descriptionTv.setText(hotSpot.getDescription());
-        Glide.with(context).load(hotSpot.getPicture().getFileUrl())
+        Glide.with(context).load(hotSpot.getPicture().getFileUrl(context))
                 .centerCrop().placeholder(R.mipmap.ic_launcher)
                 .crossFade().into(viewHolder.spotIv);
-        Log.d("yjm", "picture url : " + hotSpot.getPicture().getFileUrl());
+        Log.d("yjm", "picture url : " + hotSpot.getPicture().getFileUrl(context));
         return convertView;
     }
 

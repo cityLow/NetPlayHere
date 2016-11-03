@@ -63,6 +63,7 @@ import master.flame.danmaku.danmaku.loader.IllegalDataException;
 import master.flame.danmaku.danmaku.loader.android.DanmakuLoaderFactory;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.DanmakuTimer;
+import master.flame.danmaku.danmaku.model.IDanmakus;
 import master.flame.danmaku.danmaku.model.IDisplayer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import master.flame.danmaku.danmaku.model.android.Danmakus;
@@ -202,6 +203,16 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
             });
             mDanmakuView.prepare(mParser, mContext);
             mDanmakuView.enableDanmakuDrawingCache(true);
+            mDanmakuView.setOnDanmakuClickListener(new IDanmakuView.OnDanmakuClickListener() {
+                @Override
+                public void onDanmakuClick(BaseDanmaku latest) {
+                    Log.d("yjm", latest.text.toString() + ",,,," + latest.userHash);
+                }
+
+                @Override
+                public void onDanmakuClick(IDanmakus danmakus) {
+                }
+            });
         }
 
         mSendBtn = (Button) view.findViewById(R.id.sendBtn);
@@ -259,14 +270,18 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
         BmobQuery<User> bmobQuery1 = new BmobQuery<>();
         bmobQuery1.addWhereEqualTo("username", userId);
-        bmobQuery1.findObjects(new FindListener<User>() {
+        bmobQuery1.findObjects(getContext(), new FindListener<User>() {
             @Override
-            public void done(List<User> list, BmobException e) {
-                if (e == null) {
-                    mCurrentUser = list.get(0);
-                    Log.d("yjm", mCurrentUser.getUsername());
-                }
+            public void onSuccess(List list) {
+                mCurrentUser = (User) list.get(0);
+                Log.d("yjm", mCurrentUser.getUsername());
             }
+
+            @Override
+            public void onError(int i, String s) {
+
+            }
+
         });
 
         mCurrentSpot = new Spot();
@@ -276,9 +291,9 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
         BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
         bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
-        bmobQuery.findObjects(new FindListener<SpotPhoto>() {
+        bmobQuery.findObjects(getContext(), new FindListener<SpotPhoto>() {
             @Override
-            public void done(List<SpotPhoto> list, BmobException e) {
+            public void onSuccess(List list) {
                 spotPhotoList = list;
                 pagerAdapter = new ViewPagerAdapter(getActivity(), list);
                 viewPager.setAdapter(pagerAdapter);
@@ -291,6 +306,13 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     }
                 }, 2000, 6000);
             }
+
+            @Override
+            public void onError(int i, String s) {
+
+            }
+
+
         });
         kwSeeker  = SimpleKWSeekerProcessor.newInstance(getContext()).getKWSeeker(Config.DEFAULT_KEY);
     }
@@ -388,27 +410,38 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         spotPhoto.setUser(mCurrentUser);
         spotPhoto.setSpot(mCurrentSpot);
         spotPhoto.setPhoto(bmobFile);
-        bmobFile.upload(new UploadFileListener() {
+        bmobFile.upload(getContext(), new UploadFileListener() {
             @Override
-            public void done(BmobException e) {
-                spotPhoto.save(new SaveListener<String>() {
+            public void onSuccess() {
+                spotPhoto.save(getContext(), new SaveListener() {
                     @Override
-                    public void done(String s, BmobException e) {
+                    public void onSuccess() {
                         Log.d("yjm", "发表图片成功，积分+2");
                         Toast.makeText(getContext(), "发表图片成功，积分+2", Toast.LENGTH_SHORT).show();
                         mCurrentUser.setScore(mCurrentUser.getScore() + 2);
-                        mCurrentUser.update(new UpdateListener() {
+                        mCurrentUser.update(getContext(), new UpdateListener() {
                             @Override
-                            public void done(BmobException e) {
-                                if (e == null) {
-                                    Log.d("yjm", "update score success");
-                                } else {
-                                    Log.d("yjm", "update score fail " + e.getMessage());
-                                }
+                            public void onSuccess() {
+                                Log.d("yjm", "update score success");
+                            }
+
+                            @Override
+                            public void onFailure(int i, String s) {
+                                Log.d("yjm", "update score fail " + s);
                             }
                         });
                     }
+
+                    @Override
+                    public void onFailure(int i, String s) {
+
+                    }
                 });
+            }
+
+            @Override
+            public void onFailure(int i, String s) {
+
             }
         });
     }
@@ -418,9 +451,9 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         //更新滚动图片
         BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
         bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
-        bmobQuery.findObjects(new FindListener<SpotPhoto>() {
+        bmobQuery.findObjects(getContext(), new FindListener<SpotPhoto>(){
             @Override
-            public void done(List<SpotPhoto> list, BmobException e) {
+            public void onSuccess(List list) {
                 if (list == null || list.size() <= 0) {
                     return;
                 }
@@ -436,6 +469,11 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                         handler.sendEmptyMessage(-1);
                     }
                 }, 2000, 4000);
+            }
+
+            @Override
+            public void onError(int i, String s) {
+
             }
         });
     }
@@ -466,35 +504,42 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 spotDanmu.setText(text);
                 spotDanmu.setTime(mDanmakuView.getCurrentTime() + 1200 + "");
                 spotDanmu.setSpot(mCurrentSpot);
+                spotDanmu.setUserHash(mCurrentUser.getObjectId());
                 addSpotDanmaku(spotDanmu);
-                spotDanmu.save(new SaveListener<String>() {
+                spotDanmu.save(getContext(), new SaveListener() {
                     @Override
-                    public void done(String s, BmobException e) {
-                        if (e == null) {
-                            Toast.makeText(getContext(), notify, Toast.LENGTH_SHORT).show();
-                            mCurrentUser.setScore(mCurrentUser.getScore() + 1);
-                            mCurrentUser.update(new UpdateListener() {
-                                @Override
-                                public void done(BmobException e) {
-                                    if (e == null) {
-                                        Log.d("yjm", "update score success +1");
-                                    } else {
-                                        Log.d("yjm", "update score fail +1" + e.getMessage());
-                                    }
-                                }
-                            });
-                        }
+                    public void onSuccess() {
+                        Toast.makeText(getContext(), notify, Toast.LENGTH_SHORT).show();
+                        mCurrentUser.setScore(mCurrentUser.getScore() + 1);
+                        mCurrentUser.update(getContext(), new UpdateListener() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d("yjm", "update score success +1");
+                            }
+
+                            @Override
+                            public void onFailure(int i, String s) {
+                                Log.d("yjm", "update score fail +1" + s);
+                            }
+
+                        });
                     }
+
+                    @Override
+                    public void onFailure(int i, String s) {
+
+                    }
+
                 });
                 mEditText.getText().clear();
                 break;
             case R.id.btnSearch:
                 BmobQuery<Spot> query = new BmobQuery<>();
                 query.addWhereContains("name", mSearchEt.getText().toString());
-                query.findObjects(new FindListener<Spot>() {
+                query.findObjects(getContext(), new FindListener<Spot>() {
                     @Override
-                    public void done(List<Spot> list, BmobException e) {
-                        if (e == null && list != null && list.size() > 0) {
+                    public void onSuccess(List<Spot> list) {
+                        if (list != null && list.size() > 0) {
                             Toast.makeText(getContext(), "搜索成功", Toast.LENGTH_SHORT).show();
                             timer.cancel();
                             mCurrentSpot = list.get(0);
@@ -503,9 +548,12 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                             //清除当前的弹幕
                             mDanmakuView.clearDanmakusOnScreen();
                             loadDanmu();
-                        } else {
-                            Toast.makeText(getContext(), "抱歉，找不到您输入的景点信息！", Toast.LENGTH_SHORT).show();
                         }
+                    }
+
+                    @Override
+                    public void onError(int i, String s) {
+                        Toast.makeText(getContext(), "抱歉，找不到您输入的景点信息！", Toast.LENGTH_SHORT).show();
                     }
                 });
                 break;
@@ -526,9 +574,9 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private void loadDanmu() {
         BmobQuery<SpotDanmu> bmobQuery = new BmobQuery<>();
         bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
-        bmobQuery.findObjects(new FindListener<SpotDanmu>() {
+        bmobQuery.findObjects(getContext(), new FindListener<SpotDanmu>() {
             @Override
-            public void done(List<SpotDanmu> list, BmobException e) {
+            public void onSuccess(List<SpotDanmu> list) {
                 if (list == null) {
                     return;
                 }
@@ -536,6 +584,11 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 for (SpotDanmu spotDanmu : list) {
                     addSpotDanmaku(spotDanmu);
                 }
+            }
+
+            @Override
+            public void onError(int i, String s) {
+
             }
         });
     }
@@ -558,6 +611,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         danmaku.textSize = 25f * (mParser.getDisplayer().getDensity() - 0.6f);
         danmaku.textColor = Color.RED;
         danmaku.textShadowColor = Color.WHITE;
+        danmaku.userHash = spotDanmu.getUserHash();
         // danmaku.underlineColor = Color.GREEN;
         //danmaku.borderColor = Color.GREEN;
         mDanmakuView.addDanmaku(danmaku);

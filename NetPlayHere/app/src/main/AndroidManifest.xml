@@ -48,7 +48,10 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="7r1P75GFzZcEQruIUepvK8iUauEe2j46" />
+            android:value="7r1P75GFzZcEQruIUepvK8iUauEe2j46"/>
+        <meta-data
+            android:name="Bmob_APP_KEY"
+            android:value="32f93faddd6fea80b6866f9c90c9def2" />
 
         <activity
             android:name=".activity.LoginActivity"
@@ -130,16 +133,16 @@
             </intent-filter>
         </activity>
         <!--<activity-->
-            <!--android:name=".sharedSDK.wxapi.WXEntryActivity"-->
-            <!--android:configChanges="keyboardHidden|orientation|screenSize"-->
-            <!--android:exported="true"-->
-            <!--android:theme="@android:style/Theme.Translucent.NoTitleBar" />-->
+        <!--android:name=".sharedSDK.wxapi.WXEntryActivity"-->
+        <!--android:configChanges="keyboardHidden|orientation|screenSize"-->
+        <!--android:exported="true"-->
+        <!--android:theme="@android:style/Theme.Translucent.NoTitleBar" />-->
 
         <activity
             android:name=".activity.NavigationActivity"
             android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-            android:label="导航" >
+            android:label="导航"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -161,8 +164,7 @@
         <service
             android:name="com.baidu.trace.LBSTraceService"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"/>
     </application>
 
 </manifest>

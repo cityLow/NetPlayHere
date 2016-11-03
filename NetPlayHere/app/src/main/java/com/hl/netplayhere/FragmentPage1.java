@@ -4,12 +4,15 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -73,6 +76,7 @@ import java.util.Map;
 
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindCallback;
 import cn.bmob.v3.listener.FindListener;
 
 
@@ -202,14 +206,30 @@ public class FragmentPage1 extends Fragment {
 
         //拉取热门景点
         BmobQuery<HotSpot> query = new BmobQuery<>();
-        query.findObjects(new FindListener<HotSpot>() {
+//        query.findObjects(getContext(), new FindCallback() {
+//            @Override
+//            public void onSuccess(JSONArray jsonArray) {
+//                Log.d("yjm", "onSuccess " + jsonArray.toString());
+//            }
+//
+//            @Override
+//            public void onFailure(int i, String s) {
+//                Log.d("yjm", "error " + s);
+//            }
+//        });
+        query.findObjects(getContext(), new FindListener<HotSpot>() {
             @Override
-            public void done(List<HotSpot> list, BmobException e) {
-                if (getContext() != null) {
+            public void onSuccess(List<HotSpot> list) {
+                    Log.d("yjm", "load hotspot : " + list.size());
                     mSpotAdapter = new SpotAdapter(getContext(), list);
                     mListView.setAdapter(mSpotAdapter);
-                }
             }
+
+            @Override
+            public void onError(int i, String s) {
+                Log.d("yjm", "error " + s);
+            }
+
         });
         initNavi();
 
@@ -271,7 +291,7 @@ public class FragmentPage1 extends Fragment {
                     .direction(100).latitude(location.getLatitude())
                     .longitude(location.getLongitude()).build();
             mBaiduMap.setMyLocationData(locData);
-            if (Constant.isMapNeedReload) {
+            if (Constant.isMapNeedReload || true) {
                 Constant.isMapNeedReload = false;
                 MapStatus.Builder builder = new MapStatus.Builder();
                 builder.target(latLng).zoom(16.0f);
@@ -450,13 +470,13 @@ public class FragmentPage1 extends Fragment {
 
         msUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
 
-        if (null == realtimeBitmap) {
-            realtimeBitmap = BitmapDescriptorFactory
-                    .fromResource(R.drawable.icon_geo);
-        }
+//        if (null == realtimeBitmap) {
+//            realtimeBitmap = BitmapDescriptorFactory
+//                    .fromResource(R.drawable.icon_geo);
+//        }
 
         overlayOptions = new MarkerOptions().position(point)
-                .icon(realtimeBitmap).zIndex(9).draggable(true);
+                /*.icon(realtimeBitmap)*/.zIndex(9).draggable(true);
 
         if (pointList.size() >= 2 && pointList.size() <= 10000) {
             // 添加路线（轨迹）
@@ -770,13 +790,13 @@ public class FragmentPage1 extends Fragment {
             popupWindow = new PopupWindow(contentView,
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
             popupWindow.setTouchable(true);
+            popupWindow.setFocusable(true);
+            popupWindow.setOutsideTouchable(true);
+            popupWindow.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.white)));
             popupWindow.setTouchInterceptor(new View.OnTouchListener() {
 
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-
-                    Log.i("mengdd", "onTouch : ");
-
                     return false;
                     // 这里如果返回true的话，touch事件将被拦截
                     // 拦截后 PopupWindow的onTouchEvent不被调用，这样点击外部区域无法dismiss
@@ -786,13 +806,44 @@ public class FragmentPage1 extends Fragment {
             item1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if(!mLocClient.isStarted()){
+                        mLocClient.registerLocationListener(new MyLocationListener());
+                        LocationClientOption option = new LocationClientOption();
+                        option.setOpenGps(true);// 打开gps
+                        option.setCoorType("bd09ll"); // 设置坐标类型
+                        option.setScanSpan(1000);
+                        mLocClient.setLocOption(option);
+                        mLocClient.start();
+                    }
+                    startRefreshThread(false);
                     popupWindow.dismiss();
                 }
             });
+            LinearLayout item2 = (LinearLayout) contentView.findViewById(R.id.pop_item2);
+            item2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mLocClient.stop();
+                    startRefreshThread(true);
+                    queryHistoryTrack(0, null);
+                    popupWindow.dismiss();
+                }
+            });
+            LinearLayout item3 = (LinearLayout) contentView.findViewById(R.id.pop_item3);
+            item3.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mLocClient.stop();
+                    startRefreshThread(false);
+                    searchNearby();
+                    popupWindow.dismiss();
+                }
+            });
+
         }
 
         if(!popupWindow.isShowing()){
-            popupWindow.showAsDropDown(view, Utils.dip2px(getContext(), 40), 0);
+            popupWindow.showAsDropDown(view);
         } else{
             popupWindow.dismiss();
         }

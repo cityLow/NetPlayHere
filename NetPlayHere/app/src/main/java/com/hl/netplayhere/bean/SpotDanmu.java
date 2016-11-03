@@ -11,6 +11,7 @@ public class SpotDanmu extends BmobObject{
     private String text;
     private String time;
     private Spot spot;
+    private String userHash;
 
     public String getTime() {
         return time;
@@ -18,6 +19,14 @@ public class SpotDanmu extends BmobObject{
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public String getUserHash() {
+        return userHash;
+    }
+
+    public void setUserHash(String userHash) {
+        this.userHash = userHash;
     }
 
     public String getText() {

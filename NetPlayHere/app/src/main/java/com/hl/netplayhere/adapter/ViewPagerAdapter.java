@@ -52,7 +52,7 @@ public class ViewPagerAdapter extends PagerAdapter{
         ImageView imageView = (ImageView) inflater.inflate(R.layout.layout_photo, null);
         container.addView(imageView);
         Log.d("instantiateItem", "position: " + position);
-        Glide.with(context).load(spotPhotos.get(position).getPhoto().getFileUrl()).placeholder(R.drawable.huaqinchi)
+        Glide.with(context).load(spotPhotos.get(position).getPhoto().getFileUrl(context)).placeholder(R.drawable.huaqinchi)
                                     .crossFade().into(imageView);
         return imageView;
     }
