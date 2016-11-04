@@ -26,17 +26,32 @@ import com.hl.netplayhere.FragmentPage3;
 import com.hl.netplayhere.MonitorService;
 import com.hl.netplayhere.MyApplication;
 import com.hl.netplayhere.R;
+import com.hl.netplayhere.bean.RefreshEvent;
+import com.hl.netplayhere.bean.User;
 import com.hl.netplayhere.sensitive.SimpleKWSeekerProcessor;
 import com.hl.netplayhere.util.Constant;
 import com.hl.netplayhere.util.DateUtils;
+import com.hl.netplayhere.util.IMMLeaks;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import cn.bmob.newim.BmobIM;
+import cn.bmob.newim.core.ConnectionStatus;
+import cn.bmob.newim.event.MessageEvent;
+import cn.bmob.newim.event.OfflineMessageEvent;
+import cn.bmob.newim.listener.ConnectListener;
+import cn.bmob.newim.listener.ConnectStatusChangeListener;
+import cn.bmob.v3.BmobUser;
+import cn.bmob.v3.exception.BmobException;
 
 public class MainActivity extends AppCompatActivity {
 
     private static Context mAppContext;
     private static MyApplication trackApp;
+    private User mCurrentUser;
 
     /**
      * 开启轨迹服务监听器
@@ -94,6 +109,30 @@ public class MainActivity extends AppCompatActivity {
         trackApp = (MyApplication) getApplication();
         mAppContext = getApplicationContext();
         handler.sendEmptyMessageDelayed(-1, 2000);
+
+
+        mCurrentUser = BmobUser.getCurrentUser(MainActivity.this,User.class);
+        BmobIM.connect(mCurrentUser.getObjectId(), new ConnectListener() {
+            @Override
+            public void done(String uid, BmobException e) {
+                if (e == null) {
+                    Log.i("bmobIm","connect success");
+                    //服务器连接成功就发送一个更新事件，同步更新会话及主页的小红点
+                    EventBus.getDefault().post(new RefreshEvent());
+                } else {
+                    Log.e("bmobIm",e.getErrorCode() + "/" + e.getMessage());
+                }
+            }
+        });
+        //监听连接状态，也可通过BmobIM.getInstance().getCurrentStatus()来获取当前的长连接状态
+        BmobIM.getInstance().setOnConnectStatusChangeListener(new ConnectStatusChangeListener() {
+            @Override
+            public void onChange(ConnectionStatus status) {
+                Log.d("bmobIm", status.getMsg());
+            }
+        });
+        //解决leancanary提示InputMethodManager内存泄露的问题
+        IMMLeaks.fixFocusedViewLeak(getApplication());
     }
 
     /**
@@ -130,6 +169,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    public User getCurrentUser(){
+        return mCurrentUser;
+    }
+
+
+
 
     /**
      * 给Tab按钮设置图标和文字
@@ -223,6 +269,41 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "再次返回退出应用！", Toast.LENGTH_SHORT).show();
                 time = System.currentTimeMillis();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        //清理导致内存泄露的资源
+        BmobIM.getInstance().clear();
+        super.onDestroy();
+    }
+
+    /**注册消息接收事件
+     * @param event
+     */
+    @Subscribe
+    public void onEventMainThread(MessageEvent event){
+        checkRedPoint();
+    }
+
+    /**注册离线消息接收事件
+     * @param event
+     */
+    @Subscribe
+    public void onEventMainThread(OfflineMessageEvent event){
+        checkRedPoint();
+    }
+    private void checkRedPoint(){
+        int count = (int)BmobIM.getInstance().getAllUnReadCount();
+    }
+
+    /**注册自定义消息接收事件
+     * @param event
+     */
+    @Subscribe
+    public void onEventMainThread(RefreshEvent event){
+        Log.d("bmobIm","---主页接收到自定义消息---");
+        checkRedPoint();
     }
 }
 

@@ -33,6 +33,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.hl.netplayhere.activity.ChatActivity;
+import com.hl.netplayhere.activity.MainActivity;
 import com.hl.netplayhere.adapter.ViewPagerAdapter;
 import com.hl.netplayhere.bean.Spot;
 import com.hl.netplayhere.bean.SpotDanmu;
@@ -50,6 +52,9 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.bmob.newim.BmobIM;
+import cn.bmob.newim.bean.BmobIMConversation;
+import cn.bmob.newim.bean.BmobIMUserInfo;
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.datatype.BmobFile;
 import cn.bmob.v3.exception.BmobException;
@@ -103,6 +108,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private KWSeeker kwSeeker;
 
     private View rootView;
+    private MainActivity activity;
 
     private static Handler handler = new Handler() {
         @Override
@@ -207,6 +213,29 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 @Override
                 public void onDanmakuClick(BaseDanmaku latest) {
                     Log.d("yjm", latest.text.toString() + ",,,," + latest.userHash);
+
+                    BmobQuery<User> query = new BmobQuery<>();
+                    query.addWhereEqualTo("objectId", latest.userHash);
+                    query.findObjects(getContext(), new FindListener<User>() {
+                        @Override
+                        public void onSuccess(List<User> list) {
+                            User user = list.get(0);
+                            BmobIMUserInfo info = new BmobIMUserInfo(user.getObjectId(), user.getUsername(), user.getAvatar());
+                            //启动一个会话，实际上就是在本地数据库的会话列表中先创建（如果没有）与该用户的会话信息，且将用户信息存储到本地的用户表中
+                            BmobIMConversation c = BmobIM.getInstance().startPrivateConversation(info, null);
+                            Intent intent = new Intent(getContext(), ChatActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("c", c);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        }
+
+                        @Override
+                        public void onError(int i, String s) {
+
+                        }
+                    });
+
                 }
 
                 @Override
@@ -263,26 +292,28 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
         Log.d("yjm", "fragment2 onViewCreated");
 
-        mCurrentUser = new User();
-        SharedPreferences sharedPreferences = getContext().getSharedPreferences("currentUser", Context.MODE_PRIVATE);
-        String userId = sharedPreferences.getString("userId", "");
-        mCurrentUser.setObjectId(userId);
+//        mCurrentUser = new User();
+//        SharedPreferences sharedPreferences = getContext().getSharedPreferences("currentUser", Context.MODE_PRIVATE);
+//        String userId = sharedPreferences.getString("userId", "");
+//        mCurrentUser.setObjectId(userId);
+//
+//        BmobQuery<User> bmobQuery1 = new BmobQuery<>();
+//        bmobQuery1.addWhereEqualTo("username", userId);
+//        bmobQuery1.findObjects(getContext(), new FindListener<User>() {
+//            @Override
+//            public void onSuccess(List list) {
+//                mCurrentUser = (User) list.get(0);
+//                Log.d("yjm", mCurrentUser.getUsername());
+//            }
+//
+//            @Override
+//            public void onError(int i, String s) {
+//
+//            }
+//
+//        });
 
-        BmobQuery<User> bmobQuery1 = new BmobQuery<>();
-        bmobQuery1.addWhereEqualTo("username", userId);
-        bmobQuery1.findObjects(getContext(), new FindListener<User>() {
-            @Override
-            public void onSuccess(List list) {
-                mCurrentUser = (User) list.get(0);
-                Log.d("yjm", mCurrentUser.getUsername());
-            }
-
-            @Override
-            public void onError(int i, String s) {
-
-            }
-
-        });
+        mCurrentUser = activity.getCurrentUser();
 
         mCurrentSpot = new Spot();
         mCurrentSpot.setObjectId("QC4PZZZd");
@@ -315,6 +346,13 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
         });
         kwSeeker  = SimpleKWSeekerProcessor.newInstance(getContext()).getKWSeeker(Config.DEFAULT_KEY);
+    }
+
+
+    @Override
+    public void onAttach(Activity activity) {
+        this.activity = (MainActivity) activity;
+        super.onAttach(activity);
     }
 
     @Override

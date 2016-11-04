@@ -206,17 +206,6 @@ public class FragmentPage1 extends Fragment {
 
         //拉取热门景点
         BmobQuery<HotSpot> query = new BmobQuery<>();
-//        query.findObjects(getContext(), new FindCallback() {
-//            @Override
-//            public void onSuccess(JSONArray jsonArray) {
-//                Log.d("yjm", "onSuccess " + jsonArray.toString());
-//            }
-//
-//            @Override
-//            public void onFailure(int i, String s) {
-//                Log.d("yjm", "error " + s);
-//            }
-//        });
         query.findObjects(getContext(), new FindListener<HotSpot>() {
             @Override
             public void onSuccess(List<HotSpot> list) {

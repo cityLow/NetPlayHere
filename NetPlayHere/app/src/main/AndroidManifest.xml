@@ -48,7 +48,7 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="7r1P75GFzZcEQruIUepvK8iUauEe2j46"/>
+            android:value="7r1P75GFzZcEQruIUepvK8iUauEe2j46" />
         <meta-data
             android:name="Bmob_APP_KEY"
             android:value="32f93faddd6fea80b6866f9c90c9def2" />
@@ -72,6 +72,10 @@
         <activity
             android:name=".activity.RegisterActivity"
             android:launchMode="singleTop" />
+        <activity
+            android:name=".activity.ChatActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
+
 
         <!-- sharedsdk -->
         <activity
@@ -164,7 +168,7 @@
         <service
             android:name="com.baidu.trace.LBSTraceService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
     </application>
 
 </manifest>
