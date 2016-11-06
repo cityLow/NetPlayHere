@@ -17,16 +17,16 @@
         android:drawableTop="@drawable/btn_chat_add_picture_selector"
         android:text="照片"
         />
-    <TextView 
-        android:id="@+id/tv_camera"
-        android:layout_width="0dp"
-        android:layout_weight="1.0"
-        android:drawablePadding="10dp"
-        android:gravity="center"
-        android:layout_height="wrap_content"
-        android:drawableTop="@drawable/btn_chat_add_camera_selector"
-        android:text="相机"
-        />
+    <!--<TextView -->
+        <!--android:id="@+id/tv_camera"-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_weight="1.0"-->
+        <!--android:drawablePadding="10dp"-->
+        <!--android:gravity="center"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:drawableTop="@drawable/btn_chat_add_camera_selector"-->
+        <!--android:text="相机"-->
+        <!--/>-->
     <!--<TextView -->
         <!--android:id="@+id/tv_location"-->
         <!--android:layout_width="0dp"-->

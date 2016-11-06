@@ -5,19 +5,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -75,8 +72,6 @@ import java.util.List;
 import java.util.Map;
 
 import cn.bmob.v3.BmobQuery;
-import cn.bmob.v3.exception.BmobException;
-import cn.bmob.v3.listener.FindCallback;
 import cn.bmob.v3.listener.FindListener;
 
 
@@ -280,7 +275,7 @@ public class FragmentPage1 extends Fragment {
                     .direction(100).latitude(location.getLatitude())
                     .longitude(location.getLongitude()).build();
             mBaiduMap.setMyLocationData(locData);
-            if (Constant.isMapNeedReload || true) {
+            if (Constant.isMapNeedReload) {
                 Constant.isMapNeedReload = false;
                 MapStatus.Builder builder = new MapStatus.Builder();
                 builder.target(latLng).zoom(16.0f);
@@ -795,7 +790,7 @@ public class FragmentPage1 extends Fragment {
             item1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(!mLocClient.isStarted()){
+                    if(Constant.isMapNeedReload){
                         mLocClient.registerLocationListener(new MyLocationListener());
                         LocationClientOption option = new LocationClientOption();
                         option.setOpenGps(true);// 打开gps
@@ -813,6 +808,9 @@ public class FragmentPage1 extends Fragment {
                 @Override
                 public void onClick(View v) {
                     mLocClient.stop();
+                    mLocClient.unRegisterLocationListener(new MyLocationListener());
+                    Log.d("yjm", "定位是否开启：" + mLocClient.isStarted());
+                    Constant.isMapNeedReload = true;
                     startRefreshThread(true);
                     queryHistoryTrack(0, null);
                     popupWindow.dismiss();
@@ -823,6 +821,8 @@ public class FragmentPage1 extends Fragment {
                 @Override
                 public void onClick(View v) {
                     mLocClient.stop();
+                    mLocClient.unRegisterLocationListener(new MyLocationListener());
+                    Constant.isMapNeedReload = true;
                     startRefreshThread(false);
                     searchNearby();
                     popupWindow.dismiss();

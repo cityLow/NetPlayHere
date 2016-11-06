@@ -1,8 +1,12 @@
 package com.hl.netplayhere.activity;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,7 +27,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import com.hl.netplayhere.R;
 import com.hl.netplayhere.adapter.ChatAdapter;
@@ -80,10 +83,10 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
     Button btn_chat_add;
     @Bind(R.id.btn_chat_emo)
     Button btn_chat_emo;
-    @Bind(R.id.btn_speak)
-    Button btn_speak;
-    @Bind(R.id.btn_chat_voice)
-    Button btn_chat_voice;
+    //    @Bind(R.id.btn_speak)
+//    Button btn_speak;
+//    @Bind(R.id.btn_chat_voice)
+//    Button btn_chat_voice;
     @Bind(R.id.btn_chat_keyboard)
     Button btn_chat_keyboard;
     @Bind(R.id.btn_chat_send)
@@ -154,7 +157,13 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
         adapter.setOnRecyclerViewListener(new OnRecyclerViewListener() {
             @Override
             public void onItemClick(int position) {
-//                Logger.i(""+position);
+                BmobIMMessage bmobIMMessage = adapter.getItem(position);
+                if (bmobIMMessage.getMsgType().equals("image")) {
+                    Intent intent = new Intent(ChatActivity.this, ShowPicActivity.class);
+                    BmobIMImageMessage message = BmobIMImageMessage.buildFromDB(true, bmobIMMessage);
+                    intent.putExtra("pic", TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath() : message.getRemoteUrl());
+                    startActivity(intent);
+                }
             }
 
             @Override
@@ -189,14 +198,14 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
                 if (!TextUtils.isEmpty(s)) {
                     btn_chat_send.setVisibility(View.VISIBLE);
                     btn_chat_keyboard.setVisibility(View.GONE);
-                    btn_chat_voice.setVisibility(View.GONE);
-                } else {
+//                    btn_chat_voice.setVisibility(View.GONE);
+                }/* else {
                     if (btn_chat_voice.getVisibility() != View.VISIBLE) {
                         btn_chat_voice.setVisibility(View.VISIBLE);
                         btn_chat_send.setVisibility(View.GONE);
                         btn_chat_keyboard.setVisibility(View.GONE);
                     }
-                }
+                }*/
             }
 
             @Override
@@ -394,15 +403,15 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
         }
     }
 
-    @OnClick(R.id.btn_chat_voice)
-    public void onVoiceClick(View view) {
-        edit_msg.setVisibility(View.GONE);
-        layout_more.setVisibility(View.GONE);
-        btn_chat_voice.setVisibility(View.GONE);
-        btn_chat_keyboard.setVisibility(View.VISIBLE);
-        btn_speak.setVisibility(View.VISIBLE);
-        hideSoftInputView();
-    }
+//    @OnClick(R.id.btn_chat_voice)
+//    public void onVoiceClick(View view) {
+//        edit_msg.setVisibility(View.GONE);
+//        layout_more.setVisibility(View.GONE);
+//        btn_chat_voice.setVisibility(View.GONE);
+//        btn_chat_keyboard.setVisibility(View.VISIBLE);
+//        btn_speak.setVisibility(View.VISIBLE);
+//        hideSoftInputView();
+//    }
 
     @OnClick(R.id.btn_chat_keyboard)
     public void onKeyClick(View view) {
@@ -416,14 +425,16 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
 
     @OnClick(R.id.tv_picture)
     public void onPictureClick(View view) {
-//        sendLocalImageMessage();
+        sendLocalImageMessage();
 //        sendOtherMessage();
-        sendVideoMessage();
+//        sendVideoMessage();
     }
+//
 //    @OnClick(R.id.tv_camera)
-//    public void onCameraClick(View view){
+//    public void onCameraClick(View view) {
 //        sendRemoteImageMessage();
 //    }
+
 //
 //    @OnClick(R.id.tv_location)
 //    public void onLocationClick(View view){
@@ -439,8 +450,8 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
     private void showEditState(boolean isEmo) {
         edit_msg.setVisibility(View.VISIBLE);
         btn_chat_keyboard.setVisibility(View.GONE);
-        btn_chat_voice.setVisibility(View.VISIBLE);
-        btn_speak.setVisibility(View.GONE);
+//        btn_chat_voice.setVisibility(View.VISIBLE);
+//        btn_speak.setVisibility(View.GONE);
         edit_msg.requestFocus();
         if (isEmo) {
             layout_more.setVisibility(View.VISIBLE);
@@ -497,9 +508,12 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
      * 发送本地图片地址
      */
     public void sendLocalImageMessage() {
+        Intent innerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        innerIntent.setType("image/*"); // 查看类型
+        startActivityForResult(innerIntent, 0);
         //正常情况下，需要调用系统的图库或拍照功能获取到图片的本地地址，开发者只需要将本地的文件地址传过去就可以发送文件类型的消息
-        BmobIMImageMessage image = new BmobIMImageMessage("/storage/emulated/0/bimagechooser/IMG_20160302_172003.jpg");
-        c.sendMessage(image, listener);
+//        BmobIMImageMessage image = new BmobIMImageMessage("/storage/emulated/0/bimagechooser/IMG_20160302_172003.jpg");
+//        c.sendMessage(image, listener);
 //        //因此也可以使用BmobIMFileMessage来发送文件消息
 //        BmobIMFileMessage file =new BmobIMFileMessage("文件地址");
 //        c.sendMessage(file,listener);
@@ -669,6 +683,25 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
             }
         }
         scrollToBottom();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 0 && resultCode == RESULT_OK && data != null) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+
+            Cursor cursor = getContentResolver().query(selectedImage,
+                    filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+
+            BmobIMImageMessage image = new BmobIMImageMessage(picturePath);
+            c.sendMessage(image, listener);
+
+        }
     }
 
     @Override

@@ -8,8 +8,10 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.hl.netplayhere.R;
 import com.hl.netplayhere.adapter.base.BaseViewHolder;
+import com.hl.netplayhere.util.GlideCircleTransform;
 
 import java.text.SimpleDateFormat;
 
@@ -81,6 +83,14 @@ public class SendImageHolder extends BaseViewHolder {
     //发送的不是远程图片地址，则取本地地址
 //    ImageLoaderFactory.getLoader().load(iv_picture, TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl(),R.mipmap.ic_launcher,null);
 //    ViewUtil.setPicture(TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl(), R.mipmap.ic_launcher, iv_picture,null);
+
+    Glide.with(context).load(TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl()).placeholder(R.mipmap.ic_launcher)
+            .crossFade().into(iv_picture);
+
+    Glide.with(context).load(info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+            .placeholder(R.mipmap.ic_launcher)
+            .crossFade().into(iv_avatar);
+
 
     iv_avatar.setOnClickListener(new View.OnClickListener() {
       @Override

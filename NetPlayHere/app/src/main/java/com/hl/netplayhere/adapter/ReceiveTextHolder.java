@@ -6,8 +6,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.hl.netplayhere.R;
 import com.hl.netplayhere.adapter.base.BaseViewHolder;
+import com.hl.netplayhere.util.GlideCircleTransform;
 
 import java.text.SimpleDateFormat;
 
@@ -36,7 +38,6 @@ public class ReceiveTextHolder extends BaseViewHolder {
 
   @OnClick({R.id.iv_avatar})
   public void onAvatarClick(View view) {
-
   }
 
   @Override
@@ -49,6 +50,9 @@ public class ReceiveTextHolder extends BaseViewHolder {
     //ImageLoaderFactory.getLoader().loadAvator(iv_avatar,info != null ? info.getAvatar() : null, R.mipmap.head);
     String content =  message.getContent();
     tv_message.setText(content);
+    Glide.with(context).load(info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+            .placeholder(R.mipmap.ic_launcher)
+            .crossFade().into(iv_avatar);
     iv_avatar.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {

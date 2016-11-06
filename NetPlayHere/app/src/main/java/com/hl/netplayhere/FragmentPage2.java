@@ -2,9 +2,7 @@ package com.hl.netplayhere;
 
 import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -57,7 +55,6 @@ import cn.bmob.newim.bean.BmobIMConversation;
 import cn.bmob.newim.bean.BmobIMUserInfo;
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.datatype.BmobFile;
-import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.SaveListener;
 import cn.bmob.v3.listener.UpdateListener;
@@ -219,8 +216,12 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     query.findObjects(getContext(), new FindListener<User>() {
                         @Override
                         public void onSuccess(List<User> list) {
+                            if(list == null || list.size() == 0){
+                                return;
+                            }
                             User user = list.get(0);
-                            BmobIMUserInfo info = new BmobIMUserInfo(user.getObjectId(), user.getUsername(), user.getAvatar());
+                            BmobIMUserInfo info = new BmobIMUserInfo(user.getObjectId(), user.getUsername(),
+                                    user.getAvatar() == null ? "" : user.getAvatar().getFileUrl(getContext()));
                             //启动一个会话，实际上就是在本地数据库的会话列表中先创建（如果没有）与该用户的会话信息，且将用户信息存储到本地的用户表中
                             BmobIMConversation c = BmobIM.getInstance().startPrivateConversation(info, null);
                             Intent intent = new Intent(getContext(), ChatActivity.class);
@@ -292,33 +293,11 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
         Log.d("yjm", "fragment2 onViewCreated");
 
-//        mCurrentUser = new User();
-//        SharedPreferences sharedPreferences = getContext().getSharedPreferences("currentUser", Context.MODE_PRIVATE);
-//        String userId = sharedPreferences.getString("userId", "");
-//        mCurrentUser.setObjectId(userId);
-//
-//        BmobQuery<User> bmobQuery1 = new BmobQuery<>();
-//        bmobQuery1.addWhereEqualTo("username", userId);
-//        bmobQuery1.findObjects(getContext(), new FindListener<User>() {
-//            @Override
-//            public void onSuccess(List list) {
-//                mCurrentUser = (User) list.get(0);
-//                Log.d("yjm", mCurrentUser.getUsername());
-//            }
-//
-//            @Override
-//            public void onError(int i, String s) {
-//
-//            }
-//
-//        });
-
         mCurrentUser = activity.getCurrentUser();
 
         mCurrentSpot = new Spot();
         mCurrentSpot.setObjectId("QC4PZZZd");
         loadDanmu();
-
 
         BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
         bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
@@ -377,17 +356,20 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     public void onDestroy() {
         super.onDestroy();
         if (mDanmakuView != null) {
-            // dont forget release!
             mDanmakuView.release();
             mDanmakuView = null;
         }
-        if (timer != null)
+        if (timer != null){
             timer.cancel();
+        }
+        if(viewPager != null){
+            viewPager.setAdapter(null);
+            viewPager = null;
+        }
     }
 
     public void onBackPressed() {
         if (mDanmakuView != null) {
-            // dont forget release!
             mDanmakuView.release();
             mDanmakuView = null;
         }
@@ -436,7 +418,6 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                             }
                         });
             }
-
             notifyViewpager();
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -456,7 +437,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     public void onSuccess() {
                         Log.d("yjm", "发表图片成功，积分+2");
                         Toast.makeText(getContext(), "发表图片成功，积分+2", Toast.LENGTH_SHORT).show();
-                        mCurrentUser.setScore(mCurrentUser.getScore() + 2);
+                        mCurrentUser.increment("score", 2);
                         mCurrentUser.update(getContext(), new UpdateListener() {
                             @Override
                             public void onSuccess() {
@@ -572,8 +553,10 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 mEditText.getText().clear();
                 break;
             case R.id.btnSearch:
+                mDeleteIv.setVisibility(View.GONE);
+                mSearchEt.getText().clear();
                 BmobQuery<Spot> query = new BmobQuery<>();
-                query.addWhereContains("name", mSearchEt.getText().toString());
+                query.addWhereEqualTo("name", mSearchEt.getText().toString());
                 query.findObjects(getContext(), new FindListener<Spot>() {
                     @Override
                     public void onSuccess(List<Spot> list) {
@@ -586,6 +569,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                             //清除当前的弹幕
                             mDanmakuView.clearDanmakusOnScreen();
                             loadDanmu();
+                        } else{
+                            Toast.makeText(getContext(), "抱歉，找不到您输入的景点信息！", Toast.LENGTH_SHORT).show();
                         }
                     }
 

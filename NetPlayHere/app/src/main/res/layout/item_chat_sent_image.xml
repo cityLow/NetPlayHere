@@ -27,7 +27,7 @@
             android:layout_height="@dimen/height_50"
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
-            android:background="@mipmap/head"
+            android:background="@mipmap/ic_launcher"
             android:scaleType="fitXY" />
 
         <ImageView

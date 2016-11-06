@@ -1,7 +1,7 @@
 package com.hl.netplayhere.bean;
 
+import android.content.Context;
 import android.text.TextUtils;
-
 
 import com.hl.netplayhere.bean.i.QueryUserListener;
 import com.hl.netplayhere.bean.i.UpdateCacheListener;
@@ -176,7 +176,7 @@ public class UserModel extends BaseModel {
      * @param event
      * @param listener
      */
-    public void updateUserInfo(MessageEvent event, final UpdateCacheListener listener){
+    public void updateUserInfo(final Context context, MessageEvent event, final UpdateCacheListener listener){
         final BmobIMConversation conversation=event.getConversation();
         final BmobIMUserInfo info =event.getFromUserInfo();
         final BmobIMMessage msg =event.getMessage();
@@ -190,7 +190,10 @@ public class UserModel extends BaseModel {
                 public void done(User s, BmobException e) {
                     if(e==null){
                         String name =s.getUsername();
-                        String avatar = s.getAvatar();
+                        String avatar = "";
+                        if(s.getAvatar() != null){
+                            avatar = s.getAvatar().getFileUrl(context);
+                        }
 //                        Logger.i("query success："+name+","+avatar);
                         conversation.setConversationIcon(avatar);
                         conversation.setConversationTitle(name);

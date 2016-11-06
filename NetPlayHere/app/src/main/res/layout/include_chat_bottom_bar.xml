@@ -49,26 +49,26 @@
             android:textColorHint="@color/color_b4"
             android:textSize="@dimen/text_size_medium" />
 
-        <Button
-            android:id="@+id/btn_speak"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="6dp"
-            android:layout_marginRight="6dp"
-            android:layout_weight="1.0"
-            android:background="@drawable/btn_chat_record_selector"
-            android:gravity="center"
-            android:text="长按说话"
-            android:visibility="gone"/>
+        <!--<Button-->
+            <!--android:id="@+id/btn_speak"-->
+            <!--android:layout_width="0dp"-->
+            <!--android:layout_height="40dp"-->
+            <!--android:layout_marginLeft="6dp"-->
+            <!--android:layout_marginRight="6dp"-->
+            <!--android:layout_weight="1.0"-->
+            <!--android:background="@drawable/btn_chat_record_selector"-->
+            <!--android:gravity="center"-->
+            <!--android:text="长按说话"-->
+            <!--android:visibility="gone"/>-->
 
-        <Button
-            android:id="@+id/btn_chat_voice"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginLeft="6dp"
-            android:background="@drawable/btn_chat_voice_selector"
-            android:gravity="center"
-            android:textColor="@color/base_color_text_black"/>
+        <!--<Button-->
+            <!--android:id="@+id/btn_chat_voice"-->
+            <!--android:layout_width="30dp"-->
+            <!--android:layout_height="30dp"-->
+            <!--android:layout_marginLeft="6dp"-->
+            <!--android:background="@drawable/btn_chat_voice_selector"-->
+            <!--android:gravity="center"-->
+            <!--android:textColor="@color/base_color_text_black"/>-->
 
         <Button
             android:id="@+id/btn_chat_keyboard"
@@ -85,8 +85,7 @@
             android:layout_height="30dp"
             android:layout_marginLeft="10dp"
             android:background="@drawable/btn_chat_send_selector"
-            android:gravity="center"
-            android:visibility="gone" />
+            android:gravity="center"/>
     </LinearLayout>
 
     <View

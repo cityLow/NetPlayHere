@@ -27,13 +27,13 @@
     <!-- shared SDK -->
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <!-- 这个权限用于进行网络定位-->
+    <!-- 这个权限用于进行网络定位 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!--允许应用读取低级别的系统日志文件 -->
+    <!-- 允许应用读取低级别的系统日志文件 -->
     <uses-permission android:name="android.permission.READ_LOGS" />
-    <!--允许访问振动设备-->
+    <!-- 允许访问振动设备 -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!--允许应用程序更改主屏幕中的设置和快捷方式-->
+    <!-- 允许应用程序更改主屏幕中的设置和快捷方式 -->
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <!-- 用于优化GPS定位 -->
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
@@ -75,7 +75,12 @@
         <activity
             android:name=".activity.ChatActivity"
             android:windowSoftInputMode="adjustPan|stateHidden" />
+        <activity
+            android:name=".activity.EditAvatarActivity"
+            android:label="图像" />
 
+        <activity android:name=".activity.ShowPicActivity"
+            android:label="照片展示"/>
 
         <!-- sharedsdk -->
         <activity
@@ -136,11 +141,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <!--<activity-->
-        <!--android:name=".sharedSDK.wxapi.WXEntryActivity"-->
-        <!--android:configChanges="keyboardHidden|orientation|screenSize"-->
-        <!--android:exported="true"-->
-        <!--android:theme="@android:style/Theme.Translucent.NoTitleBar" />-->
+        <!-- <activity -->
+        <!-- android:name=".sharedSDK.wxapi.WXEntryActivity" -->
+        <!-- android:configChanges="keyboardHidden|orientation|screenSize" -->
+        <!-- android:exported="true" -->
+        <!-- android:theme="@android:style/Theme.Translucent.NoTitleBar" /> -->
 
         <activity
             android:name=".activity.NavigationActivity"
@@ -149,22 +154,19 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
 
         <service
             android:name=".MonitorService"
             android:enabled="true"
             android:exported="true" />
-
-
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
             android:process=":remote" />
-
         <service
             android:name="com.baidu.trace.LBSTraceService"
             android:enabled="true"

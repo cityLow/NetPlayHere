@@ -58,6 +58,6 @@ dependencies {
     compile 'cn.bmob.android:bmob-im:2.0.5@aar'
     //bmob-sdk:3.4.7
     compile 'cn.bmob.android:bmob-sdk:3.4.7-aar'
-    compile 'org.greenrobot:eventbus:3.0.0'
+    //compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.jakewharton:butterknife:7.0.1'
 }

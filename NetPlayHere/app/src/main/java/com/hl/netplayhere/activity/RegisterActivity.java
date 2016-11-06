@@ -1,7 +1,7 @@
 package com.hl.netplayhere.activity;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -13,8 +13,6 @@ import android.widget.Toast;
 import com.hl.netplayhere.R;
 import com.hl.netplayhere.bean.User;
 
-import cn.bmob.v3.BmobUser;
-import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.SaveListener;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -56,6 +54,9 @@ public class RegisterActivity extends AppCompatActivity {
                     bu.setUsername(email);
                     bu.setPassword(password);
                     bu.setScore(0);
+//                    BmobFile bmobFile = new BmobFile();
+//                    bmobFile.setUrl("http://bmob-cdn-5589.b0.upaiyun.com/2016/11/05/19fbe37840490857808583266ff9212d.png");
+//                    bu.setAvatar(bmobFile);
                     //注意：不能用save方法进行注册
                     bu.signUp(RegisterActivity.this, new SaveListener() {
                         @Override

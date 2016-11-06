@@ -5,28 +5,36 @@
     android:padding="6dp"
     android:layout_height="match_parent" >
 
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="积分商城"
-        android:gravity="center"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        />
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="@dimen/margin_10">
+
+        <ImageView
+            android:id="@+id/avatar_iv"
+            android:layout_width="@dimen/height_50"
+            android:layout_height="@dimen/height_50"
+            android:layout_marginLeft="@dimen/margin_5"
+            android:layout_alignParentLeft="true"
+            android:src="@mipmap/ic_launcher"
+            android:scaleType="fitXY" />
 
         <TextView
-            android:id="@+id/userScoreTv"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="20dp"
-            android:layout_centerVertical="true"
-            android:text="当前积分:"
+            android:id="@+id/userNameTv"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@id/avatar_iv"
+            android:layout_marginStart="@dimen/margin_10"
+            android:textSize="18sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/scoreTv"
+            android:layout_toRightOf="@id/avatar_iv"
+            android:layout_below="@id/userNameTv"
+            android:layout_alignBaseline="@id/avatar_iv"
+            android:layout_marginStart="@dimen/margin_10"
             android:textSize="18sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
@@ -37,7 +45,7 @@
             android:layout_marginEnd="20dp"
             android:layout_marginBottom="10dp"
             android:layout_centerVertical="true"
-            android:layout_width="60dp"
+            android:layout_width="wrap_content"
             android:layout_height="30dp"
             android:text="签到"
             />

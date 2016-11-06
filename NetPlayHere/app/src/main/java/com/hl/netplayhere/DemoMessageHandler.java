@@ -66,7 +66,7 @@ public class DemoMessageHandler extends BmobIMMessageHandler{
      */
     private void excuteMessage(final MessageEvent event){
         //检测用户信息是否需要更新
-        UserModel.getInstance().updateUserInfo(event, new UpdateCacheListener() {
+        UserModel.getInstance().updateUserInfo(context, event, new UpdateCacheListener() {
             @Override
             public void done(BmobException e) {
                 BmobIMMessage msg = event.getMessage();

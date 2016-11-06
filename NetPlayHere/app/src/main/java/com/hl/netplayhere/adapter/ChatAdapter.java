@@ -2,6 +2,7 @@ package com.hl.netplayhere.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import com.hl.netplayhere.adapter.base.BaseViewHolder;
@@ -131,11 +132,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             return new SendLocationHolder(parent.getContext(), parent,c,onRecyclerViewListener);
         } else if (viewType == TYPE_SEND_VOICE) {
             return new SendVoiceHolder(parent.getContext(), parent,c,onRecyclerViewListener);
-        } else if (viewType == TYPE_RECEIVER_TXT) {
+        }*/ else if (viewType == TYPE_RECEIVER_TXT) {
             return new ReceiveTextHolder(parent.getContext(), parent,onRecyclerViewListener);
         } else if (viewType == TYPE_RECEIVER_IMAGE) {
             return new ReceiveImageHolder(parent.getContext(), parent,onRecyclerViewListener);
-        } else if (viewType == TYPE_RECEIVER_LOCATION) {
+        }/* else if (viewType == TYPE_RECEIVER_LOCATION) {
             return new ReceiveLocationHolder(parent.getContext(), parent,onRecyclerViewListener);
         } else if (viewType == TYPE_RECEIVER_VOICE) {
             return new ReceiveVoiceHolder(parent.getContext(), parent,onRecyclerViewListener);
@@ -146,6 +147,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }else if(viewType ==TYPE_AGREE) {
             return new AgreeHolder(parent.getContext(),parent,onRecyclerViewListener);
         }*/else{//开发者自定义的其他类型，可自行处理
+            Log.d("bmobIm", "自定义消息类型 null");
             return null;
         }
     }

@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -20,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.trace.OnStartTraceListener;
+import com.hl.netplayhere.ConversationFragment;
 import com.hl.netplayhere.FragmentPage1;
 import com.hl.netplayhere.FragmentPage2;
 import com.hl.netplayhere.FragmentPage3;
@@ -58,11 +58,11 @@ public class MainActivity extends AppCompatActivity {
      */
     protected static OnStartTraceListener startTraceListener = null;
 
-    private static Handler handler = new Handler(){
+    private static Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            if(msg.what == -1){
+            if (msg.what == -1) {
                 //加载敏感词
                 new Thread(new Runnable() {
                     @Override
@@ -73,12 +73,12 @@ public class MainActivity extends AppCompatActivity {
                 if (null == startTraceListener) {
                     initOnStartTraceListener();
                 }
-                trackApp.getClient().setInterval(Constant.gatherInterval,Constant.packInterval);
+                trackApp.getClient().setInterval(Constant.gatherInterval, Constant.packInterval);
                 trackApp.getClient().setProtocolType(0);
                 //启动轨迹上传
-                trackApp.getClient().startTrace(trackApp.getTrace(),startTraceListener);
+                trackApp.getClient().startTrace(trackApp.getTrace(), startTraceListener);
                 MonitorService.isCheck = true;
-                trackApp.startService( new Intent(trackApp,
+                trackApp.startService(new Intent(trackApp,
                         com.hl.netplayhere.MonitorService.class));
             }
         }
@@ -92,13 +92,13 @@ public class MainActivity extends AppCompatActivity {
     private LayoutInflater layoutInflater;
 
     //定义数组来存放Fragment界面
-    private Class fragmentArray[] = {FragmentPage1.class, FragmentPage2.class, FragmentPage3.class};
+    private Class fragmentArray[] = {FragmentPage1.class, FragmentPage2.class, FragmentPage3.class, ConversationFragment.class};
 
     //定义数组来存放按钮图片
-    private int mImageViewArray[] = {R.drawable.tab_bg1, R.drawable.tab_bg2, R.drawable.tab_bg3};
+    private int mImageViewArray[] = {R.drawable.tab_bg1, R.drawable.tab_bg2, R.drawable.tab_bg3,R.drawable.tab_bg4};
 
     //Tab选项卡的文字
-    private String mTextviewArray[] = {"景点导航","拍照弹幕", "积分商城"};
+    private String mTextviewArray[] = {"景点导航", "拍照弹幕", "积分商城", "私聊"};
 
     private long time;
 
@@ -111,16 +111,16 @@ public class MainActivity extends AppCompatActivity {
         handler.sendEmptyMessageDelayed(-1, 2000);
 
 
-        mCurrentUser = BmobUser.getCurrentUser(MainActivity.this,User.class);
+        mCurrentUser = BmobUser.getCurrentUser(MainActivity.this, User.class);
         BmobIM.connect(mCurrentUser.getObjectId(), new ConnectListener() {
             @Override
             public void done(String uid, BmobException e) {
                 if (e == null) {
-                    Log.i("bmobIm","connect success");
+                    Log.i("bmobIm", "connect success");
                     //服务器连接成功就发送一个更新事件，同步更新会话及主页的小红点
                     EventBus.getDefault().post(new RefreshEvent());
                 } else {
-                    Log.e("bmobIm",e.getErrorCode() + "/" + e.getMessage());
+                    Log.e("bmobIm", e.getErrorCode() + "/" + e.getMessage());
                 }
             }
         });
@@ -161,20 +161,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabChanged(String tabId) {
                 Constant.isMapNeedReload = true;
-                if(!tabId.equals(mTextviewArray[1])){
+                if (!tabId.equals(mTextviewArray[1])) {
                     FragmentPage2 fragmentPage = (FragmentPage2) getSupportFragmentManager().findFragmentByTag(mTextviewArray[1]);
-                    if(fragmentPage != null)
+                    if (fragmentPage != null)
                         fragmentPage.onBackPressed();
                 }
             }
         });
     }
 
-    public User getCurrentUser(){
+    public User getCurrentUser() {
         return mCurrentUser;
     }
-
-
 
 
     /**
@@ -202,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         FragmentPage1 fragmentPage1 = (FragmentPage1) getSupportFragmentManager().findFragmentByTag(mTextviewArray[0]);
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action1:
                 //Fragment fragment = TrackUploadFragment.newInstance((MyApplication) getApplication());
 //                getSupportFragmentManager().beginTransaction().replace(R.id.realtabcontent,fragment , mTextviewArray[0]).commit();
@@ -263,11 +261,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-            if(System.currentTimeMillis() - time <= 2000){
-                super.onBackPressed();
-            } else{
-                Toast.makeText(MainActivity.this, "再次返回退出应用！", Toast.LENGTH_SHORT).show();
-                time = System.currentTimeMillis();
+        if (System.currentTimeMillis() - time <= 2000) {
+            super.onBackPressed();
+        } else {
+            Toast.makeText(MainActivity.this, "再次返回退出应用！", Toast.LENGTH_SHORT).show();
+            time = System.currentTimeMillis();
         }
     }
 
@@ -278,31 +276,40 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    /**注册消息接收事件
+    /**
+     * 注册消息接收事件
+     *
      * @param event
      */
     @Subscribe
-    public void onEventMainThread(MessageEvent event){
+    public void onEventMainThread(MessageEvent event) {
+
+        Log.d("bmobIm", "---MessageEvent---" + event.getMessage() + "," + event.getFromUserInfo().getName());
         checkRedPoint();
     }
 
-    /**注册离线消息接收事件
+    /**
+     * 注册离线消息接收事件
+     *
      * @param event
      */
     @Subscribe
-    public void onEventMainThread(OfflineMessageEvent event){
+    public void onEventMainThread(OfflineMessageEvent event) {
         checkRedPoint();
     }
-    private void checkRedPoint(){
-        int count = (int)BmobIM.getInstance().getAllUnReadCount();
+
+    private void checkRedPoint() {
+        int count = (int) BmobIM.getInstance().getAllUnReadCount();
     }
 
-    /**注册自定义消息接收事件
+    /**
+     * 注册自定义消息接收事件
+     *
      * @param event
      */
     @Subscribe
-    public void onEventMainThread(RefreshEvent event){
-        Log.d("bmobIm","---主页接收到自定义消息---");
+    public void onEventMainThread(RefreshEvent event) {
+        Log.d("bmobIm", "---主页接收到自定义消息---");
         checkRedPoint();
     }
 }

@@ -7,8 +7,10 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.hl.netplayhere.R;
 import com.hl.netplayhere.adapter.base.BaseViewHolder;
+import com.hl.netplayhere.util.GlideCircleTransform;
 
 import java.text.SimpleDateFormat;
 
@@ -59,6 +61,11 @@ public class SendTextHolder extends BaseViewHolder implements View.OnClickListen
     String content = message.getContent();
     tv_message.setText(content);
     tv_time.setText(time);
+
+
+    Glide.with(context).load(info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+            .placeholder(R.mipmap.ic_launcher)
+            .crossFade().into(iv_avatar);
 
     int status =message.getSendStatus();
     if (status == BmobIMSendStatus.SENDFAILED.getStatus()) {

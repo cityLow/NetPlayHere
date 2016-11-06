@@ -27,7 +27,6 @@ import com.hl.netplayhere.util.Utils;
 import java.util.HashMap;
 
 import cn.bmob.v3.BmobUser;
-import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.SaveListener;
 import cn.sharesdk.tencent.qq.QQ;
 
@@ -214,6 +213,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void login(String platformName) {
+        showProgress(true);
         LoginApi api = new LoginApi();
         //设置登陆的平台后执行登陆的方法
         api.setPlatform(platformName);
@@ -221,51 +221,52 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public boolean onLogin(String platform, final HashMap<String, Object> res) {
                 // 在这个方法填写尝试的代码，返回true表示还不能登录，需要注册
                 // 此处全部给回需要注册
-                Toast.makeText(LoginActivity.this, "login success!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "QQ授权成功!", Toast.LENGTH_SHORT).show();
 
                 final User bu = new User();
                 bu.setUsername((String) res.get("nickname"));
                 bu.setPassword("123456");
                 bu.setScore(0);
 
-                SharedPreferences sharedPreferences = getSharedPreferences("currentUser", MODE_PRIVATE);
-                if(!sharedPreferences.getString("userId", "").equals(bu.getUsername()))
-                {
-                    //注意：不能用save方法进行注册
-                    bu.signUp(LoginActivity.this, new SaveListener() {
-                        @Override
-                        public void onSuccess() {
-                            Log.d("yjm", "第三方注册成功");
-                        }
-
-                        @Override
-                        public void onFailure(int i, String s) {
-                            Log.d("yjm", "第三方注册失败: " + s);
-                        }
-                    });
-                }
-
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("userId", bu.getUsername());
-                editor.apply();
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-
                 bu.login(LoginActivity.this, new SaveListener() {
                     @Override
                     public void onSuccess() {
-                        SharedPreferences sharedLogin = getSharedPreferences("currentUser", MODE_PRIVATE);
-                        SharedPreferences.Editor ed = sharedLogin.edit();
-                        ed.putString("userId", bu.getUsername());
-                        ed.apply();
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
 
                     @Override
                     public void onFailure(int i, String s) {
+                        Log.d("yjm", "第三方登录失败: " + s);
+                        bu.signUp(LoginActivity.this, new SaveListener() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d("yjm", "第三方注册成功");
 
+                                bu.login(LoginActivity.this, new SaveListener() {
+                                    @Override
+                                    public void onSuccess() {
+                                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+
+                                    @Override
+                                    public void onFailure(int i, String s) {
+                                        Log.d("yjm", "第三方登录失败: " + s);
+                                    }
+                                });
+
+                            }
+
+                            @Override
+                            public void onFailure(int i, String s) {
+                                Log.d("yjm", "第三方注册失败: " + s);
+                            }
+                        });
                     }
                 });
-                finish();
                 return true;
             }
 
@@ -277,6 +278,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         api.login(this);
     }
 
+    private void bmobLogin(User bu){
+        bu.login(LoginActivity.this, new SaveListener() {
+            @Override
+            public void onSuccess() {
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onFailure(int i, String s) {
+                Log.d("yjm", "第三方登录失败: " + s);
+            }
+        });
+    }
 
 }
 
