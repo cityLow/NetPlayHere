@@ -55,7 +55,7 @@ public class ReceiveImageHolder extends BaseViewHolder {
         //可使用buildFromDB方法转化为指定类型的消息
         final BmobIMImageMessage message = BmobIMImageMessage.buildFromDB(false, msg);
         //显示图片
-        Glide.with(context).load(info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+        Glide.with(context).load(info.getAvatar() == null ? R.mipmap.ic_launcher : info.getAvatar()).transform(new GlideCircleTransform(getContext()))
                 .placeholder(R.mipmap.ic_launcher)
                 .crossFade().into(iv_avatar);
 
@@ -84,7 +84,6 @@ public class ReceiveImageHolder extends BaseViewHolder {
         iv_picture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toast("点击图片:" + message.getRemoteUrl() + "");
                 if (onRecyclerViewListener != null) {
                     onRecyclerViewListener.onItemClick(getAdapterPosition());
                 }

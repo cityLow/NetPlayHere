@@ -137,6 +137,8 @@ public class FragmentPage1 extends Fragment {
 
     protected static OnTrackListener trackListener = null;
 
+    private MyLocationListener locationListener;
+
     public FragmentPage1() {
         // Required empty public constructor
     }
@@ -191,7 +193,8 @@ public class FragmentPage1 extends Fragment {
         mBaiduMap.setMyLocationEnabled(true);
         // 定位初始化
         mLocClient = new LocationClient(getActivity().getApplicationContext());
-        mLocClient.registerLocationListener(new MyLocationListener());
+        locationListener = new MyLocationListener();
+        mLocClient.registerLocationListener(locationListener);
         LocationClientOption option = new LocationClientOption();
         option.setOpenGps(true);// 打开gps
         option.setCoorType("bd09ll"); // 设置坐标类型
@@ -226,6 +229,7 @@ public class FragmentPage1 extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        Constant.isMapNeedReload = true;
         mMapView.onResume();
     }
 
@@ -275,8 +279,10 @@ public class FragmentPage1 extends Fragment {
                     .direction(100).latitude(location.getLatitude())
                     .longitude(location.getLongitude()).build();
             mBaiduMap.setMyLocationData(locData);
+            Log.d("yongjiaming", " onReceiveLocation flag: " + Constant.isMapNeedReload);
             if (Constant.isMapNeedReload) {
                 Constant.isMapNeedReload = false;
+                Log.d("yongjiaming", " onReceiveLocation change flag: " + Constant.isMapNeedReload);
                 MapStatus.Builder builder = new MapStatus.Builder();
                 builder.target(latLng).zoom(16.0f);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
@@ -525,7 +531,7 @@ public class FragmentPage1 extends Fragment {
                 }
 
                 try {
-                    Thread.sleep(Constant.gatherInterval * 1000);
+                    Thread.sleep(Constant.gatherInterval * 15000);
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     System.out.println("线程休眠失败");
@@ -790,16 +796,18 @@ public class FragmentPage1 extends Fragment {
             item1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(Constant.isMapNeedReload){
-                        mLocClient.registerLocationListener(new MyLocationListener());
-                        LocationClientOption option = new LocationClientOption();
-                        option.setOpenGps(true);// 打开gps
-                        option.setCoorType("bd09ll"); // 设置坐标类型
-                        option.setScanSpan(1000);
-                        mLocClient.setLocOption(option);
+                    Log.d("yongjiaming", " flag: " + Constant.isMapNeedReload);
+                    if(!mLocClient.isStarted()){
+//                        mLocClient.registerLocationListener(locationListener);
+//                        LocationClientOption option = new LocationClientOption();
+//                        option.setOpenGps(true);// 打开gps
+//                        option.setCoorType("bd09ll"); // 设置坐标类型
+//                        option.setScanSpan(1000);
+//                        mLocClient.setLocOption(option);
                         mLocClient.start();
                     }
                     startRefreshThread(false);
+                    mBaiduMap.clear();
                     popupWindow.dismiss();
                 }
             });
@@ -807,8 +815,9 @@ public class FragmentPage1 extends Fragment {
             item2.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Log.d("yongjiaming", " flag: " + Constant.isMapNeedReload);
                     mLocClient.stop();
-                    mLocClient.unRegisterLocationListener(new MyLocationListener());
+                    //mLocClient.unRegisterLocationListener(locationListener);
                     Log.d("yjm", "定位是否开启：" + mLocClient.isStarted());
                     Constant.isMapNeedReload = true;
                     startRefreshThread(true);
@@ -820,8 +829,9 @@ public class FragmentPage1 extends Fragment {
             item3.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Log.d("yongjiaming", " flag: " + Constant.isMapNeedReload);
                     mLocClient.stop();
-                    mLocClient.unRegisterLocationListener(new MyLocationListener());
+                    //mLocClient.unRegisterLocationListener(locationListener);
                     Constant.isMapNeedReload = true;
                     startRefreshThread(false);
                     searchNearby();

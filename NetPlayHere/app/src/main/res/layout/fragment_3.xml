@@ -43,10 +43,9 @@
             android:id="@+id/signBtn"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="20dp"
-            android:layout_marginBottom="10dp"
             android:layout_centerVertical="true"
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:text="签到"
             />
 

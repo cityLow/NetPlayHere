@@ -1,6 +1,8 @@
 package com.hl.netplayhere.adapter;
 
 import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -50,7 +52,17 @@ public class ReceiveTextHolder extends BaseViewHolder {
     //ImageLoaderFactory.getLoader().loadAvator(iv_avatar,info != null ? info.getAvatar() : null, R.mipmap.head);
     String content =  message.getContent();
     tv_message.setText(content);
-    Glide.with(context).load(info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+
+
+    Object avatar;
+    if( info == null || TextUtils.isEmpty(info.getAvatar())){
+      Log.d("yongjiaming", "receive info null" );
+      avatar = R.mipmap.ic_launcher;
+    } else{
+      avatar = info.getAvatar();
+    }
+
+    Glide.with(context).load(avatar).transform(new GlideCircleTransform(getContext()))
             .placeholder(R.mipmap.ic_launcher)
             .crossFade().into(iv_avatar);
     iv_avatar.setOnClickListener(new View.OnClickListener() {

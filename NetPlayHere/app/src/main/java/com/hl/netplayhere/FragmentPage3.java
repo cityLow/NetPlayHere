@@ -96,7 +96,7 @@ public class FragmentPage3 extends Fragment{
 		mScoreTv.setText("当前积分："  + mCurrentUser.getScore());
 		mUsernameTv.setText(mCurrentUser.getUsername());
 		Glide.with(getContext()).load(mCurrentUser.getAvatar() == null ? R.mipmap.ic_launcher : mCurrentUser.getAvatar().getFileUrl(getContext()))
-				.transform(new GlideCircleTransform(getContext())).into(avatorIv);
+				.transform(new GlideCircleTransform(getContext())).placeholder(R.mipmap.ic_launcher).into(avatorIv);
 
 		mSignBtn.setOnClickListener(new View.OnClickListener() {
 			@Override

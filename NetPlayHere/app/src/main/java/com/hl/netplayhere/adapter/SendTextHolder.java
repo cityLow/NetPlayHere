@@ -1,6 +1,8 @@
 package com.hl.netplayhere.adapter;
 
 import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -61,9 +63,15 @@ public class SendTextHolder extends BaseViewHolder implements View.OnClickListen
     String content = message.getContent();
     tv_message.setText(content);
     tv_time.setText(time);
+    Object avatar;
+    if( info == null || TextUtils.isEmpty(info.getAvatar())){
+      Log.d("yongjiaming", "info null" );
+      avatar = R.mipmap.ic_launcher;
+    } else{
+      avatar = info.getAvatar();
+    }
 
-
-    Glide.with(context).load(info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+    Glide.with(context).load(avatar).transform(new GlideCircleTransform(getContext()))
             .placeholder(R.mipmap.ic_launcher)
             .crossFade().into(iv_avatar);
 

@@ -87,7 +87,7 @@ public class SendImageHolder extends BaseViewHolder {
     Glide.with(context).load(TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl()).placeholder(R.mipmap.ic_launcher)
             .crossFade().into(iv_picture);
 
-    Glide.with(context).load(info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+    Glide.with(context).load(info.getAvatar() == null ? R.mipmap.ic_launcher : info.getAvatar()).transform(new GlideCircleTransform(getContext()))
             .placeholder(R.mipmap.ic_launcher)
             .crossFade().into(iv_avatar);
 
@@ -101,7 +101,6 @@ public class SendImageHolder extends BaseViewHolder {
     iv_picture.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        toast("点击图片:"+(TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl())+"");
         if(onRecyclerViewListener!=null){
           onRecyclerViewListener.onItemClick(getAdapterPosition());
         }

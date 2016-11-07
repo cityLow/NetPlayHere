@@ -38,7 +38,7 @@
     <!-- 用于优化GPS定位 -->
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
 
-    <!-- baidu key yjm 7r1P75GFzZcEQruIUepvK8iUauEe2j46 -->
+    <!-- acer B:9E:AD:AF:9F:23:E1:04:80:DD:1F:D8:DA:FA:6E:A3:F3:C8:B5:CB -->
     <application
         android:name=".MyApplication"
         android:allowBackup="true"

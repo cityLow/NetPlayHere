@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -146,14 +148,12 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if (rootView == null)
-        {
+        if (rootView == null) {
             rootView = inflater.inflate(R.layout.fragment_2, null);
         }
         // 缓存的rootView需要判断是否已经被加过parent，如果有parent需要从parent删除，要不然会发生这个rootview已经有parent的错误。
         ViewGroup parent = (ViewGroup) rootView.getParent();
-        if (parent != null)
-        {
+        if (parent != null) {
             parent.removeView(rootView);
         }
         findViews(rootView);
@@ -210,32 +210,23 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 @Override
                 public void onDanmakuClick(BaseDanmaku latest) {
                     Log.d("yjm", latest.text.toString() + ",,,," + latest.userHash);
-
-                    BmobQuery<User> query = new BmobQuery<>();
-                    query.addWhereEqualTo("objectId", latest.userHash);
-                    query.findObjects(getContext(), new FindListener<User>() {
-                        @Override
-                        public void onSuccess(List<User> list) {
-                            if(list == null || list.size() == 0){
-                                return;
-                            }
-                            User user = list.get(0);
-                            BmobIMUserInfo info = new BmobIMUserInfo(user.getObjectId(), user.getUsername(),
-                                    user.getAvatar() == null ? "" : user.getAvatar().getFileUrl(getContext()));
-                            //启动一个会话，实际上就是在本地数据库的会话列表中先创建（如果没有）与该用户的会话信息，且将用户信息存储到本地的用户表中
-                            BmobIMConversation c = BmobIM.getInstance().startPrivateConversation(info, null);
-                            Intent intent = new Intent(getContext(), ChatActivity.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putSerializable("c", c);
-                            intent.putExtras(bundle);
-                            startActivity(intent);
-                        }
-
-                        @Override
-                        public void onError(int i, String s) {
-
-                        }
-                    });
+                    if (mDanmakuView != null && mDanmakuView.isPrepared()) {
+                        mDanmakuView.pause();
+                    }
+                    SpotDanmu danmu = (SpotDanmu) latest.tag;
+                    if (danmu == null) {
+                        Toast.makeText(getContext(), "发弹幕者不存在", Toast.LENGTH_SHORT).show();
+                        mDanmakuView.resume();
+                    }
+                    BmobIMUserInfo info = new BmobIMUserInfo(danmu.getUserHash(), danmu.getUsername(),
+                            danmu.getAvatar() == null ? "" : danmu.getAvatar().getFileUrl(getContext()));
+                    //启动一个会话，实际上就是在本地数据库的会话列表中先创建（如果没有）与该用户的会话信息，且将用户信息存储到本地的用户表中
+                    BmobIMConversation c = BmobIM.getInstance().startPrivateConversation(info, null);
+                    Intent intent = new Intent(getContext(), ChatActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("c", c);
+                    intent.putExtras(bundle);
+                    startActivity(intent);
 
                 }
 
@@ -246,7 +237,6 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         }
 
         mSendBtn = (Button) view.findViewById(R.id.sendBtn);
-        //mSpotBgIv = (ImageView) view.findViewById(R.id.spot_img);
         mEditText = (EditText) view.findViewById(R.id.danmuEditText);
         mSendBtn.setOnClickListener(this);
 
@@ -324,7 +314,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
 
 
         });
-        kwSeeker  = SimpleKWSeekerProcessor.newInstance(getContext()).getKWSeeker(Config.DEFAULT_KEY);
+        kwSeeker = SimpleKWSeekerProcessor.newInstance(getContext()).getKWSeeker(Config.DEFAULT_KEY);
     }
 
 
@@ -359,10 +349,10 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
             mDanmakuView.release();
             mDanmakuView = null;
         }
-        if (timer != null){
+        if (timer != null) {
             timer.cancel();
         }
-        if(viewPager != null){
+        if (viewPager != null) {
             viewPager.setAdapter(null);
             viewPager = null;
         }
@@ -380,46 +370,44 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         super.onActivityResult(requestCode, resultCode, data);
         //Bitmap cameraBitmap = (Bitmap) data.getExtras().get("data");
         if (requestCode == 0 && resultCode == Activity.RESULT_OK && data != null) {
-            Log.d("yjm", "photo uri: " + data.getData());
-            String path = null;
-            ContentResolver contentResolver = getContext().getContentResolver();
-            Cursor cursor = contentResolver.query(data.getData(), new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
-                }
-                cursor.close();
+//            Log.d("yjm", "photo uri: " + data.getData());
+//            String path = null;
+//            ContentResolver contentResolver = getContext().getContentResolver();
+//            Cursor cursor = contentResolver.query(data.getData(), new String[]{MediaStore.Images.Media.DATA}, null, null, null);
+//            if (cursor != null) {
+//                if (cursor.moveToFirst()) {
+//                    path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+//                }
+//                cursor.close();
+//            }
+            File file = new File(Environment.getExternalStorageDirectory(), "camera.jpg");
+            try {
+                Log.d(TAG, "before compress:" + Utils.getFileSize(file));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            if (path != null) {
-                File file = new File(path);
-                try {
-                    Log.d(TAG, "before compress:" + Utils.getFileSize(file));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Luban.get(getContext())                     // initialization of Luban
-                        .load(file)                     // set the image file to compress
-                        .putGear(Luban.THIRD_GEAR)      // set the compress mode, default is : THIRD_GEAR
-                        .launch(new OnCompressListener() {
-                            @Override
-                            public void onStart() {
+            Luban.get(getContext())                     // initialization of Luban
+                    .load(file)                     // set the image file to compress
+                    .putGear(Luban.THIRD_GEAR)      // set the compress mode, default is : THIRD_GEAR
+                    .launch(new OnCompressListener() {
+                        @Override
+                        public void onStart() {
 
-                            }
+                        }
 
-                            @Override
-                            public void onSuccess(File file) throws Exception {
-                                Log.d(TAG, "after compress:" + Utils.getFileSize(file));
-                                uploadImage(file);
-                            }
+                        @Override
+                        public void onSuccess(File file) throws Exception {
+                            Log.d(TAG, "after compress:" + Utils.getFileSize(file));
+                            uploadImage(file);
+                        }
 
-                            @Override
-                            public void onError(Throwable e) {
+                        @Override
+                        public void onError(Throwable e) {
 
-                            }
-                        });
-            }
-            notifyViewpager();
+                        }
+                    });
         }
+        notifyViewpager();
         super.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -470,12 +458,13 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         //更新滚动图片
         BmobQuery<SpotPhoto> bmobQuery = new BmobQuery<>();
         bmobQuery.addWhereEqualTo("spot", mCurrentSpot);
-        bmobQuery.findObjects(getContext(), new FindListener<SpotPhoto>(){
+        bmobQuery.findObjects(getContext(), new FindListener<SpotPhoto>() {
             @Override
             public void onSuccess(List list) {
                 if (list == null || list.size() <= 0) {
                     return;
                 }
+                //FIXME java.lang.NullPointerException: Attempt to invoke virtual method 'void com.hl.netplayhere.adapter.ViewPagerAdapter.setSpotPhotos(java.util.List)' on a null object reference
                 spotPhotoList = list;
                 pagerAdapter.setSpotPhotos(list);
                 pagerAdapter.notifyDataSetChanged();
@@ -513,10 +502,10 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 String temp = kwSeeker.replaceWords(text);
 //                String temp = "";
                 final String notify;
-                if(!temp.equals(text)){
+                if (!temp.equals(text)) {
                     text = temp;
                     notify = "您的弹幕包含敏感词汇，已被系统自动和谐";
-                } else{
+                } else {
                     notify = "弹幕发送成功，积分+1";
                 }
                 SpotDanmu spotDanmu = new SpotDanmu();
@@ -524,6 +513,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 spotDanmu.setTime(mDanmakuView.getCurrentTime() + 1200 + "");
                 spotDanmu.setSpot(mCurrentSpot);
                 spotDanmu.setUserHash(mCurrentUser.getObjectId());
+                spotDanmu.setUsername(mCurrentUser.getUsername());
+                spotDanmu.setAvatar(null);
                 addSpotDanmaku(spotDanmu);
                 spotDanmu.save(getContext(), new SaveListener() {
                     @Override
@@ -569,7 +560,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                             //清除当前的弹幕
                             mDanmakuView.clearDanmakusOnScreen();
                             loadDanmu();
-                        } else{
+                        } else {
                             Toast.makeText(getContext(), "抱歉，找不到您输入的景点信息！", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -584,10 +575,15 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 mSearchEt.getText().clear();
                 break;
             case R.id.floatingBtn:
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
-                startActivityForResult(Intent.createChooser(intent, "请选择一张照片上传"), 0);
+//                Intent intent = new Intent(Intent.ACTION_PICK,
+//                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//                startActivityForResult(Intent.createChooser(intent, "请选择一张照片上传"), 0);
+
+                Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+                intent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(new File(Environment
+                                .getExternalStorageDirectory(), "camera.jpg")));
+                startActivityForResult(intent, 0);
                 break;
             default:
                 break;
@@ -634,7 +630,8 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
         danmaku.textSize = 25f * (mParser.getDisplayer().getDensity() - 0.6f);
         danmaku.textColor = Color.RED;
         danmaku.textShadowColor = Color.WHITE;
-        danmaku.userHash = spotDanmu.getUserHash();
+        danmaku.setTag(spotDanmu);
+//        danmaku.userHash = spotDanmu.getUserHash();
         // danmaku.underlineColor = Color.GREEN;
         //danmaku.borderColor = Color.GREEN;
         mDanmakuView.addDanmaku(danmaku);
