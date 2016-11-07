@@ -38,7 +38,8 @@
     <!-- 用于优化GPS定位 -->
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
 
-    <!-- acer B:9E:AD:AF:9F:23:E1:04:80:DD:1F:D8:DA:FA:6E:A3:F3:C8:B5:CB -->
+    <!-- acer 1B:9E:AD:AF:9F:23:E1:04:80:DD:1F:D8:DA:FA:6E:A3:F3:C8:B5:CB -->
+    <!-- ubuntu 48:07:CE:F2:31:8E:BD:ED:F3:44:6E:2E:03:AF:62:FE:83:04:70:D8-->
     <application
         android:name=".MyApplication"
         android:allowBackup="true"

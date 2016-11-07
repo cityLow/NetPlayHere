@@ -128,6 +128,7 @@ public class ChatActivity extends AppCompatActivity implements ObseverListener, 
         initSwipeLayout();
 //        initVoiceView();
         initBottomView();
+        setTitle("与"+c.getConversationTitle()+"私聊中");
     }
 
     private void initSwipeLayout() {

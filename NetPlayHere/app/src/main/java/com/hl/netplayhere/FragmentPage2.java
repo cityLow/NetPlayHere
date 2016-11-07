@@ -1,9 +1,7 @@
 package com.hl.netplayhere;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -369,7 +367,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         //Bitmap cameraBitmap = (Bitmap) data.getExtras().get("data");
-        if (requestCode == 0 && resultCode == Activity.RESULT_OK && data != null) {
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
 //            Log.d("yjm", "photo uri: " + data.getData());
 //            String path = null;
 //            ContentResolver contentResolver = getContext().getContentResolver();
@@ -464,10 +462,14 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 if (list == null || list.size() <= 0) {
                     return;
                 }
-                //FIXME java.lang.NullPointerException: Attempt to invoke virtual method 'void com.hl.netplayhere.adapter.ViewPagerAdapter.setSpotPhotos(java.util.List)' on a null object reference
                 spotPhotoList = list;
-                pagerAdapter.setSpotPhotos(list);
-                pagerAdapter.notifyDataSetChanged();
+                if(pagerAdapter == null){
+                    pagerAdapter = new ViewPagerAdapter(getContext(), list);
+                    viewPager.setAdapter(pagerAdapter);
+                } else{
+                    pagerAdapter.setSpotPhotos(list);
+                    pagerAdapter.notifyDataSetChanged();
+                }
                 mCurrentIndex = -1;
                 timer = new Timer();
                 timer.schedule(new TimerTask() {

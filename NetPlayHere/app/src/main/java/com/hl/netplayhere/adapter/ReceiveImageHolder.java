@@ -2,6 +2,8 @@ package com.hl.netplayhere.adapter;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -54,8 +56,17 @@ public class ReceiveImageHolder extends BaseViewHolder {
         tv_time.setText(time);
         //可使用buildFromDB方法转化为指定类型的消息
         final BmobIMImageMessage message = BmobIMImageMessage.buildFromDB(false, msg);
+        Object avatar;
+        if( info == null || TextUtils.isEmpty(info.getAvatar())){
+            Log.d("yongjiaming", "info null" );
+            avatar = R.mipmap.ic_launcher;
+        } else{
+            avatar = info.getAvatar();
+        }
+
+
         //显示图片
-        Glide.with(context).load(info.getAvatar() == null ? R.mipmap.ic_launcher : info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+        Glide.with(context).load(avatar).transform(new GlideCircleTransform(getContext()))
                 .placeholder(R.mipmap.ic_launcher)
                 .crossFade().into(iv_avatar);
 

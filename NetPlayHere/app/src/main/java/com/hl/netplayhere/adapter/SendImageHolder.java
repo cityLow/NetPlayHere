@@ -2,6 +2,7 @@ package com.hl.netplayhere.adapter;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -58,11 +59,9 @@ public class SendImageHolder extends BaseViewHolder {
     BmobIMMessage msg = (BmobIMMessage)o;
     //用户信息的获取必须在buildFromDB之前，否则会报错'Entity is detached from DAO context'
     final BmobIMUserInfo info = msg.getBmobIMUserInfo();
-//    ImageLoaderFactory.getLoader().loadAvator(iv_avatar,info != null ? info.getAvatar() : null,R.mipmap.head);
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
     String time = dateFormat.format(msg.getCreateTime());
     tv_time.setText(time);
-    //
     final BmobIMImageMessage message = BmobIMImageMessage.buildFromDB(true, msg);
     int status =message.getSendStatus();
     if (status == BmobIMSendStatus.SENDFAILED.getStatus() ||status == BmobIMSendStatus.UPLOADAILED.getStatus()) {
@@ -80,14 +79,17 @@ public class SendImageHolder extends BaseViewHolder {
       progress_load.setVisibility(View.GONE);
     }
 
-    //发送的不是远程图片地址，则取本地地址
-//    ImageLoaderFactory.getLoader().load(iv_picture, TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl(),R.mipmap.ic_launcher,null);
-//    ViewUtil.setPicture(TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl(), R.mipmap.ic_launcher, iv_picture,null);
-
+    Object avatar;
+    if( info == null || TextUtils.isEmpty(info.getAvatar())){
+      Log.d("yongjiaming", "info null" );
+      avatar = R.mipmap.ic_launcher;
+    } else{
+      avatar = info.getAvatar();
+    }
     Glide.with(context).load(TextUtils.isEmpty(message.getRemoteUrl()) ? message.getLocalPath():message.getRemoteUrl()).placeholder(R.mipmap.ic_launcher)
             .crossFade().into(iv_picture);
 
-    Glide.with(context).load(info.getAvatar() == null ? R.mipmap.ic_launcher : info.getAvatar()).transform(new GlideCircleTransform(getContext()))
+    Glide.with(context).load(avatar).transform(new GlideCircleTransform(getContext()))
             .placeholder(R.mipmap.ic_launcher)
             .crossFade().into(iv_avatar);
 
