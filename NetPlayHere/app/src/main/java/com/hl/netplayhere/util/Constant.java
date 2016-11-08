@@ -14,10 +14,10 @@ public class Constant {
     /**
      * 采集周期（单位 : 秒）
      */
-    public static int gatherInterval = 5;
+    public static int gatherInterval = 15;
 
     /**
      * 打包周期（单位 : 秒）
      */
-    public static int packInterval = 15;
+    public static int packInterval = 60;
 }

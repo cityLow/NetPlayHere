@@ -39,12 +39,12 @@ public class MyApplication extends Application {
     /**
      * 鹰眼服务ID，开发者创建的鹰眼服务对应的服务ID
      */
-    private int serviceId = 128030;
+    public static int serviceId = 128030;
 
     /**
      * entity标识
      */
-    private String entityName = "myTrace";
+    private String entityName = "myTrace2";
 
     /**
      * 轨迹服务类型（0 : 不建立socket长连接， 1 : 建立socket长连接但不上传位置数据，2 : 建立socket长连接并上传位置数据）
@@ -71,7 +71,7 @@ public class MyApplication extends Application {
         // 初始化轨迹服务客户端
         client = new LBSTraceClient(mContext);
         // 初始化轨迹服务
-        trace = new Trace(mContext, serviceId, entityName, traceType);
+        //trace = new Trace(mContext, serviceId, entityName, traceType);
         // 设置定位模式
         client.setLocationMode(LocationMode.High_Accuracy);
         mHandler = new TrackHandler(this);
@@ -111,6 +111,10 @@ public class MyApplication extends Application {
 
     public Trace getTrace() {
         return trace;
+    }
+
+    public void setTrace(Trace trace){
+        this.trace = trace;
     }
 
     public LBSTraceClient getClient() {

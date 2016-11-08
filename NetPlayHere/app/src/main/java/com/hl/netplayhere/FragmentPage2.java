@@ -84,7 +84,6 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
     private DanmakuContext mContext;
     ILoader mLoader;
 
-    //    private ImageView mSpotBgIv;
     private Button mSendBtn;
     private EditText mEditText;
     private EditText mSearchEt;
@@ -303,6 +302,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                         handler.sendEmptyMessage(-1);
                     }
                 }, 2000, 6000);
+                mSpotTv.setText("华清池");
             }
 
             @Override
@@ -463,10 +463,10 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                     return;
                 }
                 spotPhotoList = list;
-                if(pagerAdapter == null){
+                if (pagerAdapter == null) {
                     pagerAdapter = new ViewPagerAdapter(getContext(), list);
                     viewPager.setAdapter(pagerAdapter);
-                } else{
+                } else {
                     pagerAdapter.setSpotPhotos(list);
                     pagerAdapter.notifyDataSetChanged();
                 }
@@ -547,9 +547,9 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                 break;
             case R.id.btnSearch:
                 mDeleteIv.setVisibility(View.GONE);
-                mSearchEt.getText().clear();
                 BmobQuery<Spot> query = new BmobQuery<>();
                 query.addWhereEqualTo("name", mSearchEt.getText().toString());
+                mSearchEt.getText().clear();
                 query.findObjects(getContext(), new FindListener<Spot>() {
                     @Override
                     public void onSuccess(List<Spot> list) {
@@ -560,7 +560,7 @@ public class FragmentPage2 extends Fragment implements View.OnClickListener {
                             mSpotTv.setText(mCurrentSpot.getName());
                             notifyViewpager();
                             //清除当前的弹幕
-                            mDanmakuView.clearDanmakusOnScreen();
+                            mDanmakuView.removeAllDanmakus(false);
                             loadDanmu();
                         } else {
                             Toast.makeText(getContext(), "抱歉，找不到您输入的景点信息！", Toast.LENGTH_SHORT).show();

@@ -531,7 +531,7 @@ public class FragmentPage1 extends Fragment {
                 }
 
                 try {
-                    Thread.sleep(Constant.gatherInterval * 15000);
+                    Thread.sleep(Constant.gatherInterval * 1000);
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     System.out.println("线程休眠失败");
@@ -668,6 +668,7 @@ public class FragmentPage1 extends Fragment {
                 // TODO Auto-generated method stub
                 super.onQueryHistoryTrackCallback(arg0);
                 showHistoryTrack(arg0);
+                Log.d("yjm trace", "onQueryHistoryTrackCallback: " +arg0);
             }
 
             @Override
@@ -678,7 +679,7 @@ public class FragmentPage1 extends Fragment {
                     if (null != dataJson && dataJson.has("status") && dataJson.getInt("status") == 0) {
                         double distance = dataJson.getDouble("distance");
                         DecimalFormat df = new DecimalFormat("#.0");
-                        //trackApp.getmHandler().obtainMessage(0, "里程 : " + df.format(distance) + "米").sendToTarget();
+                        trackApp.getmHandler().obtainMessage(0, "里程 : " + df.format(distance) + "米").sendToTarget();
                     }
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
@@ -796,6 +797,7 @@ public class FragmentPage1 extends Fragment {
             item1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Constant.isMapNeedReload = true;
                     Log.d("yongjiaming", " flag: " + Constant.isMapNeedReload);
                     if(!mLocClient.isStarted()){
 //                        mLocClient.registerLocationListener(locationListener);

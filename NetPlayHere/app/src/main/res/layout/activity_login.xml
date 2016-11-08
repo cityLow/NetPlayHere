@@ -49,7 +49,7 @@
             android:id="@+id/register"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#FF0000FF"
+            android:textColor="@color/colorPrimary"
             android:text="@string/register"/>
 
         <View
@@ -63,7 +63,7 @@
             android:id="@+id/thirdPartyLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#FF0000FF"
+            android:textColor="@color/colorPrimary"
             android:text="@string/other_account_login"/>
 
     </LinearLayout>

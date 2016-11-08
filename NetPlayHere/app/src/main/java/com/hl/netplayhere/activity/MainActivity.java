@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.trace.OnStartTraceListener;
+import com.baidu.trace.Trace;
 import com.hl.netplayhere.ConversationFragment;
 import com.hl.netplayhere.FragmentPage1;
 import com.hl.netplayhere.FragmentPage2;
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
     private Class fragmentArray[] = {FragmentPage1.class, FragmentPage2.class, FragmentPage3.class, ConversationFragment.class};
 
     //定义数组来存放按钮图片
-    private int mImageViewArray[] = {R.drawable.tab_bg1, R.drawable.tab_bg2, R.drawable.tab_bg3,R.drawable.tab_bg4};
+    private int mImageViewArray[] = {R.drawable.tab_bg1, R.drawable.tab_bg2, R.drawable.tab_bg3, R.drawable.tab_bg4};
 
     //Tab选项卡的文字
     private String mTextviewArray[] = {"景点导航", "拍照弹幕", "积分商城", "私聊"};
@@ -108,10 +109,10 @@ public class MainActivity extends AppCompatActivity {
         initView();
         trackApp = (MyApplication) getApplication();
         mAppContext = getApplicationContext();
+        mCurrentUser = BmobUser.getCurrentUser(MainActivity.this, User.class);
+        trackApp.setTrace(new Trace(getApplicationContext(), MyApplication.serviceId, mCurrentUser.getObjectId() + "," + mCurrentUser.getUsername(), 2));
         handler.sendEmptyMessageDelayed(-1, 2000);
 
-
-        mCurrentUser = BmobUser.getCurrentUser(MainActivity.this, User.class);
         BmobIM.connect(mCurrentUser.getObjectId(), new ConnectListener() {
             @Override
             public void done(String uid, BmobException e) {
